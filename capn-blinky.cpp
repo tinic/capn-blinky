@@ -77,5 +77,5 @@ extern "C" void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *) {
     Leds::instance().transfer();
 }
 
-extern "C" void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
+extern "C" void HAL_GPIO_EXTI_Callback(uint16_t) {
 }

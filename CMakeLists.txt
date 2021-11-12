@@ -11,6 +11,7 @@ set(CC_FLAGS
     -mfloat-abi=soft
     -fdata-sections
     -ffunction-sections
+    -fstack-usage
     -flto
     -ffat-lto-objects
     -Wall
@@ -37,7 +38,7 @@ set(LD_FLAGS
     -mcpu=cortex-m4
     -mthumb
     -mfloat-abi=soft
-    -specs=nosys.specs
+    -specs=nano.specs
     -Wl,-Map=${PROJECT_NAME}.map,--cref
     -Wl,--gc-sections)
 
