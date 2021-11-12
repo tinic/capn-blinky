@@ -58,8 +58,7 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define USER_SWITCH_Pin GPIO_PIN_1
-#define USER_SWITCH_GPIO_Port GPIOB
+void   MX_GPIO_Init(void);
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
