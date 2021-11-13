@@ -333,6 +333,8 @@ public:
     static constexpr size_t ledsN = 8;
     static constexpr size_t spiPaddingBytes = 64;
 
+	static const fixed32<24> map[16];
+
     static Leds &instance();
 
     void transfer();
@@ -349,6 +351,17 @@ private:
 
 uint8_t Leds::spi_buffer[ledsN * sizeof(uint16_t) * 3 * 4 + spiPaddingBytes];
 rgb Leds::led_buffer[ledsN * 3];
+
+const fixed32<24> Leds::map[16] = {
+	fixed32<24>(0.000000000000f),  fixed32<24>(0.000000000000f),
+	fixed32<24>(0.086696349084f),  fixed32<24>(0.336206883192f),
+	fixed32<24>(0.238528773189f),  fixed32<24>(0.612068951130f),
+	fixed32<24>(0.314136117697f),  fixed32<24>(0.232758626342f),
+	fixed32<24>(0.638743460178f),  fixed32<24>(0.435344815254f),
+	fixed32<24>(1.000000000000f),  fixed32<24>(0.625000000000f),
+	fixed32<24>(0.916230380535f),  fixed32<24>(1.000000000000f),
+	fixed32<24>(0.371727734804f),  fixed32<24>(0.995689630508f)
+};
 
 Leds &Leds::instance() {
     static Leds leds;
@@ -389,59 +402,29 @@ void Leds::transfer() {
 
 #ifdef USE_HAL_DRIVER
     HAL_SPI_DMAStop(&hspi1);
-
     HAL_SPI_Transmit_DMA(&hspi1, spi_buffer, sizeof(spi_buffer));
 #endif  //#ifdef USE_HAL_DRIVER
 }
 
 extern "C" void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *) {
-
     static fixed32<24> tick;
     for (size_t c = 0; c < Leds::ledsN; c++) {
         fixed32<24> h = fixed32<24>(1.0f) - fixed32<24>(tick) % fixed32<24>(1.0f);
-        fixed32<24> hue((h + fixed32<24>(c) * fixed32<24>(1.0f / 16.0f)) % fixed32<24>(1.0f));
+        fixed32<24> hue((h + fixed32<24>(Leds::map[c*2+0]) * fixed32<24>(1.0f / 2.0f)) % fixed32<24>(1.0f));
         Leds::led_buffer[c] = rgb(hsv(hue, fixed32<24>(1.0f), fixed32<24>(1.0f)));
-
     }
     tick.raw += 100000;
 
 #ifndef USE_HAL_DRIVER
-	struct LedPos {
-		int32_t x;
-		int32_t y;
-		int32_t i;
-	};
-
-/*
-	- 385.000,+ 975.000,
-	- 467.795,+1365.000,
-	- 612.795,+1685.000,
-	- 685.000,+1245.000,
-	- 995.000,+1480.000,
-	-1340.000,+1700.000,
-	-1260.000,+2135.000,
-	- 740.000,+2130.000,       
-*/
-
-	struct LedPos ledPos[8] = {
-		{ 10,  1,  0 },
-		{  8,  2,  1 },
-		{  8,  2,  1 },
-		{  8,  2,  1 },
-		{  8,  2,  1 },
-		{  8,  2,  1 },
-		{  8,  2,  1 },
-		{  8,  2,  1 }
-	};
-
+	printf("\033[0H"); fflush(stdout);	
     for (size_t c = 0; c < Leds::ledsN; c++) {
-		printf("\033[48;2;%d;%d;%dm  \033[48;2;0;0;0m  ",
+		printf("\033[%d;%dH\033[48;2;%d;%d;%dm  \033[48;2;0;0;0m",
+			16-static_cast<int32_t>(Leds::map[c*2+0] * fixed32<24>(16)),
+			static_cast<int32_t>(Leds::map[c*2+1] * fixed32<24>(32)),
 			int32_t(float(Leds::led_buffer[c].r)*255.0f),
 			int32_t(float(Leds::led_buffer[c].g)*255.0f),
 			int32_t(float(Leds::led_buffer[c].b)*255.0f));
 	}
-
-	printf("\r");
 #endif  // #ifndef USE_HAL_DRIVER
 
     Leds::instance().transfer();
@@ -498,6 +481,7 @@ extern "C" void HAL_GPIO_EXTI_Callback(uint16_t) {
 
 #ifndef USE_HAL_DRIVER
 int main() {
+	printf("\033[2J"); fflush(stdout);	
 	for(;;) {
 		HAL_TIM_PeriodElapsedCallback(0);
 		usleep(16000);
