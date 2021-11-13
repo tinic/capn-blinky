@@ -394,8 +394,6 @@ void Leds::transfer() {
 #endif  //#ifdef USE_HAL_DRIVER
 }
 
-static size_t pattern = 0;
-
 extern "C" void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *) {
 
     static fixed32<24> tick;
@@ -420,14 +418,53 @@ extern "C" void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *) {
     Leds::instance().transfer();
 }
 
-extern "C" void HAL_GPIO_EXTI_Callback(uint16_t) {
+class Model {
+public:
+    static Model &instance();
+
+	size_t Pattern() const { return pattern; }
+	void IncPattern() { pattern++; }
+
+	void load();
+	void save();
+private:
+	size_t pattern;
+
+    void init();
+    bool initialized = false;
+};
+
+Model &Model::instance() {
+    static Model model;
+    if (!model.initialized) {
+        model.initialized = true;
+        model.init();
+    }
+    return model;
+}
+
+void Model::load() {
 #ifdef USE_HAL_DRIVER
-	pattern++;
+	pattern = *((uint32_t *)DATA_EEPROM_BASE);
+#endif  // #ifdef USE_HAL_DRIVER
+}
+
+void Model::save() {
+#ifdef USE_HAL_DRIVER
 	HAL_FLASHEx_DATAEEPROM_Unlock();
 	HAL_FLASHEx_DATAEEPROM_Erase(0);
 	HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_WORD, 0, pattern);
 	HAL_FLASHEx_DATAEEPROM_Lock();
 #endif  // #ifdef USE_HAL_DRIVER
+}
+
+void Model::init() {
+	load();
+}
+
+extern "C" void HAL_GPIO_EXTI_Callback(uint16_t) {
+	Model::instance().IncPattern();
+	Model::instance().save();
 }
 
 #ifndef USE_HAL_DRIVER
