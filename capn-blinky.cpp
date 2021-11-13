@@ -3,13 +3,12 @@
 #include <memory.h>
 #include <algorithm>
 
-struct TIM_HandleTypeDef;
-
 #ifdef USE_HAL_DRIVER
 #include "stm32l0xx_hal.h"
 extern "C" SPI_HandleTypeDef hspi1;
 extern "C" DMA_HandleTypeDef hdma_spi1_tx;
 #else  // #ifdef USE_HAL_DRIVER
+struct TIM_HandleTypeDef;
 #include <stdio.h>
 #include <unistd.h>
 #endif  // #ifdef USE_HAL_DRIVER
@@ -395,6 +394,8 @@ void Leds::transfer() {
 #endif  //#ifdef USE_HAL_DRIVER
 }
 
+static size_t pattern = 0;
+
 extern "C" void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *) {
 
     static fixed32<24> tick;
@@ -420,6 +421,13 @@ extern "C" void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *) {
 }
 
 extern "C" void HAL_GPIO_EXTI_Callback(uint16_t) {
+#ifdef USE_HAL_DRIVER
+	pattern++;
+	HAL_FLASHEx_DATAEEPROM_Unlock();
+	HAL_FLASHEx_DATAEEPROM_Erase(0);
+	HAL_FLASHEx_DATAEEPROM_Program(FLASH_TYPEPROGRAMDATA_WORD, 0, pattern);
+	HAL_FLASHEx_DATAEEPROM_Lock();
+#endif  // #ifdef USE_HAL_DRIVER
 }
 
 #ifndef USE_HAL_DRIVER
