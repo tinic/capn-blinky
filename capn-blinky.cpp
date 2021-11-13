@@ -406,12 +406,30 @@ extern "C" void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *) {
     tick.raw += 100000;
 
 #ifndef USE_HAL_DRIVER
+	struct LedPos {
+		int32_t x;
+		int32_t y;
+		int32_t i;
+	};
+
+	struct LedPos ledPos[8] = {
+		{ 10,  1,  0 },
+		{  8,  2,  1 },
+		{  8,  2,  1 },
+		{  8,  2,  1 },
+		{  8,  2,  1 },
+		{  8,  2,  1 },
+		{  8,  2,  1 },
+		{  8,  2,  1 }
+	};
+
     for (size_t c = 0; c < Leds::ledsN; c++) {
 		printf("\033[48;2;%d;%d;%dm  \033[48;2;0;0;0m  ",
 			int32_t(float(Leds::led_buffer[c].r)*255.0f),
 			int32_t(float(Leds::led_buffer[c].g)*255.0f),
 			int32_t(float(Leds::led_buffer[c].b)*255.0f));
 	}
+
 	printf("\r");
 #endif  // #ifndef USE_HAL_DRIVER
 
