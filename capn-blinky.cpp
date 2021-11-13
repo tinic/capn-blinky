@@ -3,10 +3,16 @@
 #include <memory.h>
 #include <algorithm>
 
-#include "stm32l0xx_hal.h"
+struct TIM_HandleTypeDef;
 
+#ifdef USE_HAL_DRIVER
+#include "stm32l0xx_hal.h"
 extern "C" SPI_HandleTypeDef hspi1;
 extern "C" DMA_HandleTypeDef hdma_spi1_tx;
+#else  // #ifdef USE_HAL_DRIVER
+#include <stdio.h>
+#include <unistd.h>
+#endif  // #ifdef USE_HAL_DRIVER
 
 template<size_t fbits> class fixed32 {
 
@@ -107,35 +113,31 @@ public:
         return ret;
     }
 
-    int32_t raw_value() const { return raw; }
-
-private:
-
     int32_t raw;
 };
 
 template <size_t fbits> constexpr inline bool operator==(const fixed32<fbits>& x, const fixed32<fbits>& y) noexcept {
-    return x.raw_value() == y.raw_value();
+    return x.raw == y.raw;
 }
 
 template <size_t fbits> constexpr inline bool operator!=(const fixed32<fbits>& x, const fixed32<fbits>& y) noexcept {
-    return x.raw_value() != y.raw_value();
+    return x.raw != y.raw;
 }
 
 template <size_t fbits> constexpr inline bool operator<(const fixed32<fbits>& x, const fixed32<fbits>& y) noexcept {
-    return x.raw_value() < y.raw_value();
+    return x.raw < y.raw;
 }
 
 template <size_t fbits> constexpr inline bool operator>(const fixed32<fbits>& x, const fixed32<fbits>& y) noexcept {
-    return x.raw_value() > y.raw_value();
+    return x.raw > y.raw;
 }
 
 template <size_t fbits> constexpr inline bool operator<=(const fixed32<fbits>& x, const fixed32<fbits>& y) noexcept {
-    return x.raw_value() <= y.raw_value();
+    return x.raw <= y.raw;
 }
 
 template <size_t fbits> constexpr inline bool operator>=(const fixed32<fbits>& x, const fixed32<fbits>& y) noexcept {
-    return x.raw_value() >= y.raw_value();
+    return x.raw >= y.raw;
 }
 
 class hsv;
@@ -377,30 +379,55 @@ void Leds::transfer() {
             *p++ = convert_half_to_spi((v>>0)&0xFF);
             return p;
         };
-        ptr = convert_to_one_wire_spi(ptr, ((led_buffer[c].r.raw_value()-1)>>8)&0xFFFF);
-        ptr = convert_to_one_wire_spi(ptr, ((led_buffer[c].g.raw_value()-1)>>8)&0xFFFF);
-        ptr = convert_to_one_wire_spi(ptr, ((led_buffer[c].b.raw_value()-1)>>8)&0xFFFF);
+        ptr = convert_to_one_wire_spi(ptr, ((led_buffer[c].r.raw-1)>>8)&0xFFFF);
+        ptr = convert_to_one_wire_spi(ptr, ((led_buffer[c].g.raw-1)>>8)&0xFFFF);
+        ptr = convert_to_one_wire_spi(ptr, ((led_buffer[c].b.raw-1)>>8)&0xFFFF);
     }
 
     for (size_t c = 0; c < spiPaddingBytes/(sizeof(uint32_t)*2); c++ ) {
         *ptr++ = 0;
-    }
+    };
 
+#ifdef USE_HAL_DRIVER
     HAL_SPI_DMAStop(&hspi1);
 
     HAL_SPI_Transmit_DMA(&hspi1, spi_buffer, sizeof(spi_buffer));
+#endif  //#ifdef USE_HAL_DRIVER
 }
 
 extern "C" void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *) {
-    static uint32_t tick = 0;
+
+    static fixed32<24> tick;
     for (size_t c = 0; c < Leds::ledsN; c++) {
-        fixed32<24> h = fixed32<24>(1.0f) - fixed32<24>(tick & 0x1F);
-        fixed32<24> hue((h + fixed32<24>(c) * fixed32<24>(1.0f / 255.0f)) % fixed32<24>(1.0f));
+        fixed32<24> h = fixed32<24>(1.0f) - fixed32<24>(tick) % fixed32<24>(1.0f);
+        fixed32<24> hue((h + fixed32<24>(c) * fixed32<24>(1.0f / 16.0f)) % fixed32<24>(1.0f));
         Leds::led_buffer[c] = rgb(hsv(hue, fixed32<24>(1.0f), fixed32<24>(1.0f)));
+
     }
+    tick.raw += 100000;
+
+#ifndef USE_HAL_DRIVER
+    for (size_t c = 0; c < Leds::ledsN; c++) {
+		printf("\033[48;2;%d;%d;%dm  \033[48;2;0;0;0m  ",
+			int32_t(float(Leds::led_buffer[c].r)*255.0f),
+			int32_t(float(Leds::led_buffer[c].g)*255.0f),
+			int32_t(float(Leds::led_buffer[c].b)*255.0f));
+	}
+	printf("\r");
+#endif  // #ifndef USE_HAL_DRIVER
+
     Leds::instance().transfer();
-    tick++;
 }
 
 extern "C" void HAL_GPIO_EXTI_Callback(uint16_t) {
 }
+
+#ifndef USE_HAL_DRIVER
+int main() {
+	for(;;) {
+		HAL_TIM_PeriodElapsedCallback(0);
+		usleep(16000);
+	}
+	return 0;
+}
+#endif  // #ifndef USE_HAL_DRIVER
