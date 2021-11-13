@@ -29,7 +29,7 @@ public:
     template <typename T, typename std::enable_if<std::is_floating_point<T>::value>::type* = nullptr>
     constexpr inline explicit operator T() const noexcept
     {
-        return static_cast<T>(raw) / T(1L<<fbits);
+        return static_cast<T>(raw) / T(1L << fbits);
     }
 
     template <typename T, typename std::enable_if<std::is_integral<T>::value>::type* = nullptr>
