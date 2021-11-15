@@ -35,7 +35,7 @@ set(LD_FLAGS
     -T${CMAKE_SOURCE_DIR}/STM32CubeIDE/STM32L011F3UX_FLASH.ld
     -flto
     -ffat-lto-objects
-    -mcpu=cortex-m4
+    -mcpu=cortex-m0plus
     -mthumb
     -mfloat-abi=soft
     -specs=nano.specs
