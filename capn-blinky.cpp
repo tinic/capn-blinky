@@ -112,6 +112,19 @@ public:
         return ret;
     }
 
+	constexpr fixed32 frac() const {
+        fixed32 ret; 
+		ret.raw = raw & ((1L << fbits) - 1);
+		return ret;
+	}
+
+	constexpr fixed32 abs() const {
+        fixed32 ret; 
+		int32_t mask = raw >> 31;
+		ret.raw = ( mask ^ raw ) - mask;
+		return ret;
+	}
+
     int32_t raw;
 };
 
@@ -311,13 +324,26 @@ rgb::rgb(const hsv &from) {
 	fixed32<24> h = from.h;
 	fixed32<24> s = from.s;
 
-	int32_t rd = static_cast<int32_t>( fixed32<24>(6.0f) * h );
+	uint32_t rd = static_cast<uint32_t>( fixed32<24>(6.0f) * h.abs() );
 	fixed32<24> f = h * fixed32<24>(6.0f) - fixed32<24>(rd);
 	fixed32<24> p = v * (fixed32<24>(1.0f) - s);
 	fixed32<24> q = v * (fixed32<24>(1.0f) - f * s);
 	fixed32<24> t = v * (fixed32<24>(1.0f) - (fixed32<24>(1.0f) - f) * s);
 
-	switch ( rd  % 6 ) {
+	auto mod6 = []( uint32_t a ) {
+		uint32_t c = a & 1;
+		a = a >> 1;
+		a = (a >> 16) + (a & 0xFFFF);
+		a = (a >>  8) + (a & 0xFF);
+		a = (a >>  4) + (a & 0xF);
+		a = (a >>  2) + (a & 0x3);
+		a = (a >>  2) + (a & 0x3);
+		a = (a >>  2) + (a & 0x3);
+		if (a > 2) a = a - 3;
+		return c + (a << 1);
+	};
+
+	switch ( mod6(rd) ) {
 		default:
 		case 0: r = v; g = t; b = p; break;
 		case 1: r = q; g = v; b = p; break;
@@ -409,8 +435,8 @@ void Leds::transfer() {
 extern "C" void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *) {
     static fixed32<24> tick;
     for (size_t c = 0; c < Leds::ledsN; c++) {
-        fixed32<24> h = fixed32<24>(1.0f) - fixed32<24>(tick) % fixed32<24>(1.0f);
-        fixed32<24> hue((h + fixed32<24>(Leds::map[c*2+0]) * fixed32<24>(1.0f / 2.0f)) % fixed32<24>(1.0f));
+        fixed32<24> h = fixed32<24>(1.0f) - fixed32<24>(tick).frac();
+        fixed32<24> hue((h + fixed32<24>(Leds::map[c*2+0]) * fixed32<24>(1.0f / 2.0f)).frac());
         Leds::led_buffer[c] = rgb(hsv(hue, fixed32<24>(1.0f), fixed32<24>(1.0f)));
     }
     tick.raw += 100000;
