@@ -807,6 +807,8 @@ HAL_StatusTypeDef HAL_RCC_OscConfig(RCC_OscInitTypeDef  *RCC_OscInitStruct)
         }
       }
     }
+// PLL not used, save the inclusion of unt64_t divides
+#if 0
     else
     {
       /* Check if there is a request to disable the PLL used as System clock source */
@@ -826,6 +828,7 @@ HAL_StatusTypeDef HAL_RCC_OscConfig(RCC_OscInitTypeDef  *RCC_OscInitStruct)
         }
       }
     }
+#endif  // #if 0
   }
   return HAL_OK;
 }
@@ -915,6 +918,8 @@ HAL_StatusTypeDef HAL_RCC_ClockConfig(RCC_ClkInitTypeDef  *RCC_ClkInitStruct, ui
         return HAL_ERROR;
       }
     }
+// PLL not used, save the inclusion of unt64_t divides
+#if 0
     /* PLL is selected as System Clock Source */
     else if(RCC_ClkInitStruct->SYSCLKSource == RCC_SYSCLKSOURCE_PLLCLK)
     {
@@ -924,6 +929,7 @@ HAL_StatusTypeDef HAL_RCC_ClockConfig(RCC_ClkInitTypeDef  *RCC_ClkInitStruct, ui
         return HAL_ERROR;
       }
     }
+#endif  // #if 0
     /* HSI is selected as System Clock Source */
     else if(RCC_ClkInitStruct->SYSCLKSource == RCC_SYSCLKSOURCE_HSI)
     {
@@ -957,6 +963,8 @@ HAL_StatusTypeDef HAL_RCC_ClockConfig(RCC_ClkInitTypeDef  *RCC_ClkInitStruct, ui
         }
       }
     }
+// PLL not used, save the inclusion of unt64_t divides
+#if 0
     else if(RCC_ClkInitStruct->SYSCLKSource == RCC_SYSCLKSOURCE_PLLCLK)
     {
       while (__HAL_RCC_GET_SYSCLK_SOURCE() != RCC_SYSCLKSOURCE_STATUS_PLLCLK)
@@ -967,6 +975,7 @@ HAL_StatusTypeDef HAL_RCC_ClockConfig(RCC_ClkInitTypeDef  *RCC_ClkInitStruct, ui
         }
       }
     }
+#endif  // #if 0
     else if(RCC_ClkInitStruct->SYSCLKSource == RCC_SYSCLKSOURCE_HSI)
     {
       while (__HAL_RCC_GET_SYSCLK_SOURCE() != RCC_SYSCLKSOURCE_STATUS_HSI)
@@ -1237,6 +1246,8 @@ uint32_t HAL_RCC_GetSysClockFreq(void)
       sysclockfreq = HSE_VALUE;
       break;
     }
+// PLL not used, save the inclusion of unt64_t divides
+#if 0
     case RCC_SYSCLKSOURCE_STATUS_PLLCLK:  /* PLL used as system clock */
     {
       pllm = PLLMulTable[(uint32_t)(tmpreg & RCC_CFGR_PLLMUL) >> RCC_CFGR_PLLMUL_Pos];
@@ -1260,6 +1271,11 @@ uint32_t HAL_RCC_GetSysClockFreq(void)
       sysclockfreq = pllvco;
       break;
     }
+#else //  #if 0
+    (void)pllm;
+    (void)plld;
+    (void)pllvco;
+#endif //  #if 0
     case RCC_SYSCLKSOURCE_STATUS_MSI:  /* MSI used as system clock source */
     default: /* MSI used as system clock */
     {
