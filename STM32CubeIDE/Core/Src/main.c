@@ -95,13 +95,14 @@ int main(void)
   MX_SPI1_Init();
   MX_TIM21_Init();
   /* USER CODE BEGIN 2 */
-
+  HAL_TIM_Base_Start_IT(&htim21);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	__WFI();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
