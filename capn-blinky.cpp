@@ -435,12 +435,11 @@ void Leds::transfer() {
 extern "C" void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *) {
     static fixed32<24> tick;
     for (size_t c = 0; c < Leds::ledsN; c++) {
-        fixed32<24> h = fixed32<24>(1.0f) - fixed32<24>(tick).frac();
+        fixed32<24> h = fixed32<24>(1.0f) - (fixed32<24>(tick) * fixed32<24>(0.08f)).frac();
         fixed32<24> hue((h + fixed32<24>(Leds::map[c*2+0]) * fixed32<24>(1.0f / 2.0f)).frac());
         Leds::led_buffer[c] = rgb(hsv(hue, fixed32<24>(1.0f), fixed32<24>(1.0f)));
     }
-    tick.raw += 100000;
-
+    tick.raw += 274873;
 #ifndef USE_HAL_DRIVER
 	printf("\033[0H"); fflush(stdout);	
     for (size_t c = 0; c < Leds::ledsN; c++) {
@@ -510,7 +509,7 @@ int main() {
 	printf("\033[2J"); fflush(stdout);	
 	for(;;) {
 		HAL_TIM_PeriodElapsedCallback(0);
-		usleep(16000);
+		usleep(16384);
 	}
 	return 0;
 }
