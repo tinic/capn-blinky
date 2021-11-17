@@ -42,7 +42,6 @@ NVIC.ForceEnableDMAVector=true
 NVIC.HardFault_IRQn=true\:0\:0\:false\:false\:true\:false\:false
 NVIC.NonMaskableInt_IRQn=true\:0\:0\:false\:false\:true\:false\:false
 NVIC.PendSV_IRQn=true\:0\:0\:false\:false\:true\:false\:false
-NVIC.SPI1_IRQn=true\:0\:0\:false\:false\:true\:true\:true
 NVIC.SVC_IRQn=true\:0\:0\:false\:false\:true\:false\:false
 NVIC.SysTick_IRQn=true\:3\:0\:false\:false\:true\:false\:true
 NVIC.TIM21_IRQn=true\:0\:0\:false\:false\:true\:true\:true
