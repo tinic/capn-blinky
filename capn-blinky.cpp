@@ -125,6 +125,10 @@ public:
 		return ret;
 	}
 
+	constexpr fixed32 clamp(const fixed32 &lo, const fixed32 &hi) {
+		return std::min(hi, std::max(lo, *this));
+	}
+
     int32_t raw;
 };
 
@@ -417,9 +421,9 @@ void Leds::transfer() {
             *p++ = convert_half_to_spi((v>>0)&0xFF);
             return p;
         };
-        ptr = convert_to_one_wire_spi(ptr, ((led_buffer[c].r.raw-1)>>8)&0xFFFF);
-        ptr = convert_to_one_wire_spi(ptr, ((led_buffer[c].g.raw-1)>>8)&0xFFFF);
-        ptr = convert_to_one_wire_spi(ptr, ((led_buffer[c].b.raw-1)>>8)&0xFFFF);
+        ptr = convert_to_one_wire_spi(ptr, ((led_buffer[c].g.clamp(fixed32<24>(0.0f), fixed32<24>(1.0f))) * fixed32<24>(1.0f/4096.0f)).raw);
+        ptr = convert_to_one_wire_spi(ptr, ((led_buffer[c].r.clamp(fixed32<24>(0.0f), fixed32<24>(1.0f))) * fixed32<24>(1.0f/4096.0f)).raw);
+        ptr = convert_to_one_wire_spi(ptr, ((led_buffer[c].b.clamp(fixed32<24>(0.0f), fixed32<24>(1.0f))) * fixed32<24>(1.0f/4096.0f)).raw);
     }
 
     for (size_t c = 0; c < spiPaddingBytes/(sizeof(uint32_t)*2); c++ ) {
