@@ -360,10 +360,10 @@ rgb::rgb(const hsv &from) {
 
 class Leds {
 public:
-    static constexpr size_t ledsN = 8;
+    static constexpr size_t ledsN = 12;
     static constexpr size_t spiPaddingBytes = 64;
 
-	static const fixed32<24> map[16];
+	static const fixed32<24> map[ledsN * 2];
 
     static Leds &instance();
 
@@ -382,15 +382,19 @@ private:
 uint8_t Leds::spi_buffer[ledsN * sizeof(uint16_t) * 3 * 4 + spiPaddingBytes];
 rgb Leds::led_buffer[ledsN * 3];
 
-const fixed32<24> Leds::map[16] = {
-	fixed32<24>(0.000000000000f),  fixed32<24>(0.000000000000f),
-	fixed32<24>(0.086696349084f),  fixed32<24>(0.336206883192f),
-	fixed32<24>(0.238528773189f),  fixed32<24>(0.612068951130f),
-	fixed32<24>(0.314136117697f),  fixed32<24>(0.232758626342f),
-	fixed32<24>(0.638743460178f),  fixed32<24>(0.435344815254f),
-	fixed32<24>(1.000000000000f),  fixed32<24>(0.625000000000f),
-	fixed32<24>(0.916230380535f),  fixed32<24>(1.000000000000f),
-	fixed32<24>(0.371727734804f),  fixed32<24>(0.995689630508f)
+const fixed32<24> Leds::map[ledsN * 2] = {
+    fixed32<24>(0.354993587425f), fixed32<24>(0.801751013198f),
+    fixed32<24>(0.405965339209f), fixed32<24>(1.000000000000f),
+    fixed32<24>(0.701141109540f), fixed32<24>(0.999350514393f),
+    fixed32<24>(0.753592686376f), fixed32<24>(0.808349786969f),
+    fixed32<24>(1.000000000000f), fixed32<24>(0.428920295126f),
+    fixed32<24>(0.818573448650f), fixed32<24>(0.534500675465f),
+    fixed32<24>(0.557302114506f), fixed32<24>(0.392627039385f),
+    fixed32<24>(0.173073761058f), fixed32<24>(0.405824586927f),
+    fixed32<24>(0.300700450525f), fixed32<24>(0.240855242648f),
+    fixed32<24>(0.300700450525f), fixed32<24>(0.531201288579f),
+    fixed32<24>(0.091880693216f), fixed32<24>(0.197963213135f),
+    fixed32<24>(0.000000000000f), fixed32<24>(0.000000000000f),
 };
 
 Leds &Leds::instance() {
