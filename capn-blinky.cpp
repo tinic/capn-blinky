@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <memory.h>
 #include <algorithm>
+#include <tuple>
 
 #ifdef USE_HAL_DRIVER
 #include "stm32l0xx_hal.h"
@@ -363,7 +364,20 @@ public:
     static constexpr size_t ledsN = 12;
     static constexpr size_t spiPaddingBytes = 64;
 
-	static const fixed32<24> map[ledsN * 4];
+	static constexpr std::tuple<fixed32<24>, fixed32<24>, fixed32<24>, fixed32<24>> map[ledsN] = {
+		{fixed32<24>(0.000000000000f), fixed32<24>(0.000000000000f), fixed32<24>(1.000000000000f), fixed32<24>(0.785398163398f)},
+		{fixed32<24>(0.091880693216f), fixed32<24>(0.197963213135f), fixed32<24>(0.772332122866f), fixed32<24>(0.700511333882f)},
+		{fixed32<24>(0.300700450525f), fixed32<24>(0.531201288579f), fixed32<24>(0.356442638758f), fixed32<24>(0.420808961092f)},
+		{fixed32<24>(0.300700450525f), fixed32<24>(0.240855242648f), fixed32<24>(0.557331634801f), fixed32<24>(0.947448246866f)},
+		{fixed32<24>(0.173073761058f), fixed32<24>(0.405824586927f), fixed32<24>(0.561155449758f), fixed32<24>(0.518578517019f)},
+		{fixed32<24>(0.557302114506f), fixed32<24>(0.392627039385f), fixed32<24>(0.292085112127f), fixed32<24>(1.572261434407f)},
+		{fixed32<24>(0.818573448650f), fixed32<24>(0.534500675465f), fixed32<24>(0.361259521513f), fixed32<24>(2.737267656516f)},
+		{fixed32<24>(1.000000000000f), fixed32<24>(0.428920295126f), fixed32<24>(0.617041966382f), fixed32<24>(2.717833619879f)},
+		{fixed32<24>(0.753592686376f), fixed32<24>(0.808349786969f), fixed32<24>(0.289876914397f), fixed32<24>(3.674825514208f)},
+		{fixed32<24>(0.701141109540f), fixed32<24>(0.999350514393f), fixed32<24>(0.394305272030f), fixed32<24>(4.229642688686f)},
+		{fixed32<24>(0.405965339209f), fixed32<24>(1.000000000000f), fixed32<24>(0.399002657007f), fixed32<24>(5.213568293370f)},
+		{fixed32<24>(0.354993587425f), fixed32<24>(0.801751013198f), fixed32<24>(0.292326727774f), fixed32<24>(5.782303428300f)}
+	};
 
     static Leds &instance();
 
@@ -381,21 +395,6 @@ private:
 
 uint8_t Leds::spi_buffer[ledsN * sizeof(uint16_t) * 3 * 4 + spiPaddingBytes];
 rgb Leds::led_buffer[ledsN * 3];
-
-const fixed32<24> Leds::map[ledsN * 4] = {
-    fixed32<24>(0.000000000000f), fixed32<24>(0.000000000000f), fixed32<24>(1.000000000000f), fixed32<24>(0.785398163398f),
-    fixed32<24>(0.091880693216f), fixed32<24>(0.197963213135f), fixed32<24>(0.772332122866f), fixed32<24>(0.700511333882f),
-    fixed32<24>(0.300700450525f), fixed32<24>(0.531201288579f), fixed32<24>(0.356442638758f), fixed32<24>(0.420808961092f),
-    fixed32<24>(0.300700450525f), fixed32<24>(0.240855242648f), fixed32<24>(0.557331634801f), fixed32<24>(0.947448246866f),
-    fixed32<24>(0.173073761058f), fixed32<24>(0.405824586927f), fixed32<24>(0.561155449758f), fixed32<24>(0.518578517019f),
-    fixed32<24>(0.557302114506f), fixed32<24>(0.392627039385f), fixed32<24>(0.292085112127f), fixed32<24>(1.572261434407f),
-    fixed32<24>(0.818573448650f), fixed32<24>(0.534500675465f), fixed32<24>(0.361259521513f), fixed32<24>(2.737267656516f),
-    fixed32<24>(1.000000000000f), fixed32<24>(0.428920295126f), fixed32<24>(0.617041966382f), fixed32<24>(2.717833619879f),
-    fixed32<24>(0.753592686376f), fixed32<24>(0.808349786969f), fixed32<24>(0.289876914397f), fixed32<24>(3.674825514208f),
-    fixed32<24>(0.701141109540f), fixed32<24>(0.999350514393f), fixed32<24>(0.394305272030f), fixed32<24>(4.229642688686f),
-    fixed32<24>(0.405965339209f), fixed32<24>(1.000000000000f), fixed32<24>(0.399002657007f), fixed32<24>(5.213568293370f),
-    fixed32<24>(0.354993587425f), fixed32<24>(0.801751013198f), fixed32<24>(0.292326727774f), fixed32<24>(5.782303428300f)
-};
 
 Leds &Leds::instance() {
     static Leds leds;
@@ -445,7 +444,7 @@ extern "C" void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *) {
     static fixed32<24> tick;
     for (size_t c = 0; c < Leds::ledsN; c++) {
         fixed32<24> h = fixed32<24>(1.0f) - (fixed32<24>(tick) * fixed32<24>(0.02f)).frac();
-        fixed32<24> hue((h - fixed32<24>(Leds::map[c*4+1]) * fixed32<24>(1.0f / 8.0f)).frac());
+        fixed32<24> hue((h - fixed32<24>(std::get<1>(Leds::map[c])) * fixed32<24>(1.0f / 8.0f)).frac());
         Leds::led_buffer[c] = rgb(hsv(hue, fixed32<24>(1.0f), fixed32<24>(1.0f)));
     }
     tick.raw += 274873;
@@ -453,8 +452,8 @@ extern "C" void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *) {
 	printf("\033[0H"); fflush(stdout);	
     for (size_t c = 0; c < Leds::ledsN; c++) {
 		printf("\033[%d;%dH\033[48;2;%d;%d;%dm  \033[48;2;0;0;0m",
-			16-static_cast<int32_t>(Leds::map[c*4+0] * fixed32<24>(16)),
-			static_cast<int32_t>(Leds::map[c*4+1] * fixed32<24>(32)),
+			16-static_cast<int32_t>(std::get<0>(Leds::map[c]) * fixed32<24>(16)),
+			static_cast<int32_t>(std::get<1>(Leds::map[c]) * fixed32<24>(32)),
 			int32_t(float(Leds::led_buffer[c].r)*255.0f),
 			int32_t(float(Leds::led_buffer[c].g)*255.0f),
 			int32_t(float(Leds::led_buffer[c].b)*255.0f));

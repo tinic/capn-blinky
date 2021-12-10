@@ -67,7 +67,7 @@ int main() {
     std::reverse(coords.begin(),coords.end());
 
     for (size_t c = 0; c < ledsN; c++) {
-        printf("    fixed32<24>(%14.12ff), fixed32<24>(%14.12ff), fixed32<24>(%14.12ff), fixed32<24>(%14.12ff),\n", 
+        printf("    {fixed32<24>(%14.12ff), fixed32<24>(%14.12ff), fixed32<24>(%14.12ff), fixed32<24>(%14.12ff)},\n", 
             std::get<0>(coords[c]),
             std::get<1>(coords[c]),
             std::get<2>(coords[c]),
