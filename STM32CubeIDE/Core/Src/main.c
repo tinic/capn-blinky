@@ -95,6 +95,7 @@ int main(void)
   MX_SPI1_Init();
   MX_TIM21_Init();
   /* USER CODE BEGIN 2 */
+  HAL_Delay(500);
   HAL_TIM_Base_Start_IT(&htim21);
   /* USER CODE END 2 */
 
