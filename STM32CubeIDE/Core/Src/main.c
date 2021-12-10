@@ -96,6 +96,26 @@ int main(void)
   MX_TIM21_Init();
   /* USER CODE BEGIN 2 */
   HAL_Delay(500);
+
+  // APB1
+  __HAL_RCC_WWDG_CLK_DISABLE();
+  __HAL_RCC_LPUART1_CLK_DISABLE();
+  __HAL_RCC_I2C1_CLK_DISABLE();
+  __HAL_RCC_LPTIM1_CLK_DISABLE();
+  __HAL_RCC_TIM2_CLK_DISABLE();
+  __HAL_RCC_USART2_CLK_DISABLE();
+
+  // APB2
+  __HAL_RCC_ADC1_CLK_DISABLE();
+  __HAL_RCC_DBGMCU_CLK_DISABLE();
+
+  // Core
+  __HAL_RCC_CRC_CLK_DISABLE();
+  __HAL_RCC_GPIOC_CLK_DISABLE();
+
+  HAL_PWREx_EnableUltraLowPower();
+  HAL_PWREx_EnableFastWakeUp();
+
   HAL_TIM_Base_Start_IT(&htim21);
   /* USER CODE END 2 */
 
