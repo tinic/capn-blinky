@@ -32,7 +32,7 @@ public:
     }
 
     template <typename T, typename std::enable_if<std::is_floating_point<T>::value>::type* = nullptr>
-    constexpr inline explicit fixed32(T a) noexcept {
+    consteval inline explicit fixed32(T a) noexcept {
         raw = static_cast<int32_t>(a * float(1L << fbits));
     }
 
@@ -123,6 +123,12 @@ public:
         return ret;
     }
 
+    constexpr fixed32 integral() const {
+        fixed32 ret; 
+        ret.raw = raw & ((~0) << fbits);
+        return ret;
+    }
+
     constexpr fixed32 abs() const {
         fixed32 ret; 
         int32_t mask = raw >> 31;
@@ -161,6 +167,58 @@ template <size_t fbits> constexpr inline bool operator>=(const fixed32<fbits>& x
     return x.raw >= y.raw;
 }
 
+static constexpr fixed32<24> lerp(fixed32<24> a, fixed32<24> b, fixed32<24> t) {
+    return ( a + t * (b - a));
+}
+
+static constexpr fixed32<24> sin(fixed32<24> v) {
+    constexpr fixed32<24> table[] = {
+        fixed32<24>(+0.000000000000f),fixed32<24>(+0.098017140330f),fixed32<24>(+0.195090322016f),fixed32<24>(+0.290284677254f),
+        fixed32<24>(+0.382683432365f),fixed32<24>(+0.471396736826f),fixed32<24>(+0.555570233020f),fixed32<24>(+0.634393284164f),
+        fixed32<24>(+0.707106781187f),fixed32<24>(+0.773010453363f),fixed32<24>(+0.831469612303f),fixed32<24>(+0.881921264348f),
+        fixed32<24>(+0.923879532511f),fixed32<24>(+0.956940335732f),fixed32<24>(+0.980785280403f),fixed32<24>(+0.995184726672f),
+        fixed32<24>(+1.000000000000f),fixed32<24>(+0.995184726672f),fixed32<24>(+0.980785280403f),fixed32<24>(+0.956940335732f),
+        fixed32<24>(+0.923879532511f),fixed32<24>(+0.881921264348f),fixed32<24>(+0.831469612302f),fixed32<24>(+0.773010453363f),
+        fixed32<24>(+0.707106781186f),fixed32<24>(+0.634393284164f),fixed32<24>(+0.555570233019f),fixed32<24>(+0.471396736826f),
+        fixed32<24>(+0.382683432365f),fixed32<24>(+0.290284677254f),fixed32<24>(+0.195090322016f),fixed32<24>(+0.098017140329f),
+        fixed32<24>(-0.000000000000f),fixed32<24>(-0.098017140330f),fixed32<24>(-0.195090322016f),fixed32<24>(-0.290284677255f),
+        fixed32<24>(-0.382683432365f),fixed32<24>(-0.471396736826f),fixed32<24>(-0.555570233020f),fixed32<24>(-0.634393284164f),
+        fixed32<24>(-0.707106781187f),fixed32<24>(-0.773010453363f),fixed32<24>(-0.831469612303f),fixed32<24>(-0.881921264348f),
+        fixed32<24>(-0.923879532511f),fixed32<24>(-0.956940335732f),fixed32<24>(-0.980785280403f),fixed32<24>(-0.995184726672f),
+        fixed32<24>(-1.000000000000f),fixed32<24>(-0.995184726672f),fixed32<24>(-0.980785280403f),fixed32<24>(-0.956940335732f),
+        fixed32<24>(-0.923879532511f),fixed32<24>(-0.881921264348f),fixed32<24>(-0.831469612302f),fixed32<24>(-0.773010453363f),
+        fixed32<24>(-0.707106781186f),fixed32<24>(-0.634393284163f),fixed32<24>(-0.555570233019f),fixed32<24>(-0.471396736826f),
+        fixed32<24>(-0.382683432365f),fixed32<24>(-0.290284677254f),fixed32<24>(-0.195090322016f),fixed32<24>(-0.098017140329f)
+    };
+    fixed32<24> i0 = table[(((v * fixed32<24>(10.1859163579f)).raw >> 24) + 0) % 64];
+    fixed32<24> i1 = table[(((v * fixed32<24>(10.1859163579f)).raw >> 24) + 1) % 64];
+    return lerp(i0, i1, v.frac());
+}
+
+static constexpr fixed32<24> cos(fixed32<24> v) {
+    constexpr fixed32<24> table[] = {
+        fixed32<24>(+1.000000000000f),fixed32<24>(+0.995184726672f),fixed32<24>(+0.980785280403f),fixed32<24>(+0.956940335732f),
+        fixed32<24>(+0.923879532511f),fixed32<24>(+0.881921264348f),fixed32<24>(+0.831469612303f),fixed32<24>(+0.773010453363f),
+        fixed32<24>(+0.707106781187f),fixed32<24>(+0.634393284164f),fixed32<24>(+0.555570233020f),fixed32<24>(+0.471396736826f),
+        fixed32<24>(+0.382683432365f),fixed32<24>(+0.290284677254f),fixed32<24>(+0.195090322016f),fixed32<24>(+0.098017140329f),
+        fixed32<24>(-0.000000000000f),fixed32<24>(-0.098017140330f),fixed32<24>(-0.195090322016f),fixed32<24>(-0.290284677255f),
+        fixed32<24>(-0.382683432365f),fixed32<24>(-0.471396736826f),fixed32<24>(-0.555570233020f),fixed32<24>(-0.634393284164f),
+        fixed32<24>(-0.707106781187f),fixed32<24>(-0.773010453363f),fixed32<24>(-0.831469612303f),fixed32<24>(-0.881921264348f),
+        fixed32<24>(-0.923879532511f),fixed32<24>(-0.956940335732f),fixed32<24>(-0.980785280403f),fixed32<24>(-0.995184726672f),
+        fixed32<24>(-1.000000000000f),fixed32<24>(-0.995184726672f),fixed32<24>(-0.980785280403f),fixed32<24>(-0.956940335732f),
+        fixed32<24>(-0.923879532511f),fixed32<24>(-0.881921264348f),fixed32<24>(-0.831469612302f),fixed32<24>(-0.773010453363f),
+        fixed32<24>(-0.707106781186f),fixed32<24>(-0.634393284163f),fixed32<24>(-0.555570233019f),fixed32<24>(-0.471396736826f),
+        fixed32<24>(-0.382683432365f),fixed32<24>(-0.290284677254f),fixed32<24>(-0.195090322016f),fixed32<24>(-0.098017140329f),
+        fixed32<24>(+0.000000000000f),fixed32<24>(+0.098017140330f),fixed32<24>(+0.195090322016f),fixed32<24>(+0.290284677255f),
+        fixed32<24>(+0.382683432365f),fixed32<24>(+0.471396736826f),fixed32<24>(+0.555570233020f),fixed32<24>(+0.634393284164f),
+        fixed32<24>(+0.707106781187f),fixed32<24>(+0.773010453363f),fixed32<24>(+0.831469612303f),fixed32<24>(+0.881921264349f),
+        fixed32<24>(+0.923879532511f),fixed32<24>(+0.956940335732f),fixed32<24>(+0.980785280403f),fixed32<24>(+0.995184726672f),
+    };
+    fixed32<24> i0 = table[(((v * fixed32<24>(10.1859163579f)).raw >> 24) + 0) % 64];
+    fixed32<24> i1 = table[(((v * fixed32<24>(10.1859163579f)).raw >> 24) + 1) % 64];
+    return lerp(i0, i1, v.frac());
+}
+
 class hsv;
 
 class rgb {
@@ -170,9 +228,9 @@ public:
     fixed32<24> b;
 
     constexpr rgb() :
-        r(0.0f),
-        g(0.0f),
-        b(0.0f){
+        r(fixed32<24>(0.0f)),
+        g(fixed32<24>(0.0f)),
+        b(fixed32<24>(0.0f)){
     }
 
     rgb(const rgb &from) :
@@ -284,9 +342,9 @@ public:
     fixed32<24> v;
 
     constexpr hsv() :
-        h(0.0f),
-        s(0.0f),
-        v(0.0f) {
+        h(fixed32<24>(0.0f)),
+        s(fixed32<24>(0.0f)),
+        v(fixed32<24>(0.0f)) {
     }
 
     constexpr hsv(fixed32<24> _h, fixed32<24> _s, fixed32<24> _v) :
@@ -518,11 +576,11 @@ void Model::save() {
 #endif  // #ifdef USE_HAL_DRIVER
 }
 
-static pseudo_random random;
+static pseudo_random rnd;
 
 void Model::init() {
     load();
-    random.set_seed(0xDEADBEEF);
+    rnd.set_seed(0xDEADBEEF);
 }
 
 extern "C" void HAL_GPIO_EXTI_Callback(uint16_t) {
@@ -532,48 +590,56 @@ extern "C" void HAL_GPIO_EXTI_Callback(uint16_t) {
 
 extern "C" void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *) {
     static fixed32<24> tick;
-    switch(Model::instance().Pattern() % 4) {
+    switch(Model::instance().Pattern() % 6) {
         case    0: {
+                    for (size_t c = 0; c < Leds::ledsN; c++) {
+                        fixed32<24> h = fixed32<24>(1.0f) - (fixed32<24>(tick) * fixed32<24>(0.2f)).frac();
+                        fixed32<24> hue((h + fixed32<24>(std::get<0>(Leds::map[c])) * fixed32<24>(std::get<1>(Leds::map[c])) * fixed32<24>(1.0f / 2.0f)).frac());
+                        fixed32<24> s = sin(h * fixed32<24>(6.28318530718f)) * fixed32<24>(0.5f) + fixed32<24>(0.5f);
+                        Leds::led_buffer[c] = rgb(hsv(hue, s, fixed32<24>(1.0f)));
+                    }
+                } break;
+        case    1: {
                     for (size_t c = 0; c < Leds::ledsN; c++) {
                         fixed32<24> h = fixed32<24>(1.0f) - (fixed32<24>(tick) * fixed32<24>(0.2f)).frac();
                         fixed32<24> hue((h + fixed32<24>(std::get<0>(Leds::map[c])) * fixed32<24>(std::get<1>(Leds::map[c])) * fixed32<24>(1.0f / 2.0f)).frac());
                         Leds::led_buffer[c] = rgb(hsv(hue, fixed32<24>(1.0f), fixed32<24>(1.0f)));
                     }
                 } break;
-        case    1: {
+        case    2: {
                     for (size_t c = 0; c < Leds::ledsN; c++) {
                         fixed32<24> h = fixed32<24>(1.0f) - (fixed32<24>(tick) * fixed32<24>(0.02f)).frac();
                         fixed32<24> hue((h * fixed32<24>(1.0f / 2.0f)).frac());
                         Leds::led_buffer[c] = rgb(hsv(h, fixed32<24>(0.5f) + fixed32<24>(0.5f) * fixed32<24>(std::get<2>(Leds::map[c])), fixed32<24>(1.0f) - fixed32<24>(0.9f) * fixed32<24>(std::get<2>(Leds::map[c]))));
                     }
                 } break;
-        case    2: {
+        case    3: {
                     for (size_t c = 0; c < Leds::ledsN; c++) {
                         fixed32<24> h = fixed32<24>(1.0f) - (fixed32<24>(tick) * fixed32<24>(0.02f)).frac();
                         fixed32<24> hue((h - fixed32<24>(std::get<0>(Leds::map[c])) * fixed32<24>(1.0f / 8.0f)).frac());
                         Leds::led_buffer[c] = rgb(hsv(hue, fixed32<24>(1.0f), fixed32<24>(1.0f)));
                     }
                 } break;
-        case    3: {
-                    for (size_t c = 0; c < Leds::ledsN; c++) {
-                        Leds::led_buffer[c] = rgb(fixed32<24>(0.0f), fixed32<24>(0.0f), fixed32<24>(0.0f));
-                    }
-					for (size_t c = 0; c < 6; c++) {
-						int32_t i = random.get(0,Leds::ledsN);
-						fixed32<24> v = fixed32<24>(1.0f/127.0f)*fixed32<24>(random.get(0,127));
-						Leds::led_buffer[i] = rgb(v, v, v);
-					}
-                } break;
         case    4: {
                     for (size_t c = 0; c < Leds::ledsN; c++) {
                         Leds::led_buffer[c] = rgb(fixed32<24>(0.0f), fixed32<24>(0.0f), fixed32<24>(0.0f));
                     }
 					for (size_t c = 0; c < 6; c++) {
-						int32_t i = random.get(0,Leds::ledsN);
+						int32_t i = rnd.get(0,Leds::ledsN);
+						fixed32<24> v = fixed32<24>(1.0f/127.0f)*fixed32<24>(rnd.get(0,127));
+						Leds::led_buffer[i] = rgb(v, v, v);
+					}
+                } break;
+        case    5: {
+                    for (size_t c = 0; c < Leds::ledsN; c++) {
+                        Leds::led_buffer[c] = rgb(fixed32<24>(0.0f), fixed32<24>(0.0f), fixed32<24>(0.0f));
+                    }
+					for (size_t c = 0; c < 6; c++) {
+						int32_t i = rnd.get(0,Leds::ledsN);
 						Leds::led_buffer[i] = rgb(
-							fixed32<24>(1.0f/127.0f)*fixed32<24>(random.get(0,127)), 
-							fixed32<24>(1.0f/127.0f)*fixed32<24>(random.get(0,127)), 
-							fixed32<24>(1.0f/127.0f)*fixed32<24>(random.get(0,127)));
+							fixed32<24>(1.0f/127.0f)*fixed32<24>(rnd.get(0,127)), 
+							fixed32<24>(1.0f/127.0f)*fixed32<24>(rnd.get(0,127)), 
+							fixed32<24>(1.0f/127.0f)*fixed32<24>(rnd.get(0,127)));
 					}
                 } break;
     }
