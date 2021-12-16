@@ -590,37 +590,51 @@ extern "C" void HAL_GPIO_EXTI_Callback(uint16_t) {
 
 extern "C" void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *) {
     static fixed32<24> tick;
-    switch(Model::instance().Pattern() % 6) {
+    switch(Model::instance().Pattern() % 7) {
         case    0: {
                     for (size_t c = 0; c < Leds::ledsN; c++) {
-                        fixed32<24> h = fixed32<24>(1.0f) - (fixed32<24>(tick) * fixed32<24>(0.2f)).frac();
-                        fixed32<24> hue((h + fixed32<24>(std::get<0>(Leds::map[c])) * fixed32<24>(std::get<1>(Leds::map[c])) * fixed32<24>(1.0f / 2.0f)).frac());
-                        fixed32<24> s = sin(h * fixed32<24>(6.28318530718f)) * fixed32<24>(0.5f) + fixed32<24>(0.5f);
-                        Leds::led_buffer[c] = rgb(hsv(hue, s, fixed32<24>(1.0f)));
+                        Leds::led_buffer[c] = rgb(hsv(fixed32<24>(0.6f), fixed32<24>(0.24f) + fixed32<24>(0.5f) * fixed32<24>(std::get<2>(Leds::map[c])), fixed32<24>(1.0f) - fixed32<24>(0.9f) * fixed32<24>(std::get<2>(Leds::map[c]))));
                     }
                 } break;
         case    1: {
+                    for (size_t c = 0; c < Leds::ledsN; c++) {
+                        Leds::led_buffer[c] = rgb(hsv(fixed32<24>(0.9f), fixed32<24>(0.5f) + fixed32<24>(0.5f) * fixed32<24>(std::get<2>(Leds::map[c])), fixed32<24>(1.0f) - fixed32<24>(0.9f) * fixed32<24>(std::get<2>(Leds::map[c]))));
+                    }
+                } break;
+        case    2: {
+                    for (size_t c = 0; c < Leds::ledsN; c++) {
+                        Leds::led_buffer[c] = rgb(hsv(fixed32<24>(0.1f), fixed32<24>(0.5f) + fixed32<24>(0.5f) * fixed32<24>(std::get<2>(Leds::map[c])), fixed32<24>(1.0f) - fixed32<24>(0.9f) * fixed32<24>(std::get<2>(Leds::map[c]))));
+                    }
+                } break;
+        case    3: {
+                    for (size_t c = 0; c < Leds::ledsN; c++) {
+                        fixed32<24> h = fixed32<24>(1.0f) - (fixed32<24>(tick) * fixed32<24>(0.02f)).frac();
+                        Leds::led_buffer[c] = rgb(hsv(h, fixed32<24>(0.5f) + fixed32<24>(0.5f) * fixed32<24>(std::get<2>(Leds::map[c])), fixed32<24>(1.0f) - fixed32<24>(0.9f) * fixed32<24>(std::get<2>(Leds::map[c]))));
+                    }
+                } break;
+        case    4: {
+                    for (size_t c = 0; c < Leds::ledsN; c++) {
+                        fixed32<24> h = ( fixed32<24>(1.0f) - (fixed32<24>(tick) * fixed32<24>(0.2f)).frac() ) * fixed32<24>(6.28318530718f);
+                        fixed32<24> x = (std::get<0>(Leds::map[c]) - fixed32<24>(0.5f)) * cos(h) - (std::get<1>(Leds::map[c]) - fixed32<24>(0.5f)) * sin(h);
+                        fixed32<24> hue((x * fixed32<24>(0.5f) + fixed32<24>(0.5f) + h).frac());
+                        Leds::led_buffer[c] = rgb(hsv(hue, fixed32<24>(1.0f), fixed32<24>(1.0f)));
+                    }
+                } break;
+        case    5: {
                     for (size_t c = 0; c < Leds::ledsN; c++) {
                         fixed32<24> h = fixed32<24>(1.0f) - (fixed32<24>(tick) * fixed32<24>(0.2f)).frac();
                         fixed32<24> hue((h + fixed32<24>(std::get<0>(Leds::map[c])) * fixed32<24>(std::get<1>(Leds::map[c])) * fixed32<24>(1.0f / 2.0f)).frac());
                         Leds::led_buffer[c] = rgb(hsv(hue, fixed32<24>(1.0f), fixed32<24>(1.0f)));
                     }
                 } break;
-        case    2: {
-                    for (size_t c = 0; c < Leds::ledsN; c++) {
-                        fixed32<24> h = fixed32<24>(1.0f) - (fixed32<24>(tick) * fixed32<24>(0.02f)).frac();
-                        fixed32<24> hue((h * fixed32<24>(1.0f / 2.0f)).frac());
-                        Leds::led_buffer[c] = rgb(hsv(h, fixed32<24>(0.5f) + fixed32<24>(0.5f) * fixed32<24>(std::get<2>(Leds::map[c])), fixed32<24>(1.0f) - fixed32<24>(0.9f) * fixed32<24>(std::get<2>(Leds::map[c]))));
-                    }
-                } break;
-        case    3: {
+        case    6: {
                     for (size_t c = 0; c < Leds::ledsN; c++) {
                         fixed32<24> h = fixed32<24>(1.0f) - (fixed32<24>(tick) * fixed32<24>(0.02f)).frac();
                         fixed32<24> hue((h - fixed32<24>(std::get<0>(Leds::map[c])) * fixed32<24>(1.0f / 8.0f)).frac());
                         Leds::led_buffer[c] = rgb(hsv(hue, fixed32<24>(1.0f), fixed32<24>(1.0f)));
                     }
                 } break;
-        case    4: {
+        case    7: {
                     for (size_t c = 0; c < Leds::ledsN; c++) {
                         Leds::led_buffer[c] = rgb(fixed32<24>(0.0f), fixed32<24>(0.0f), fixed32<24>(0.0f));
                     }
@@ -630,7 +644,7 @@ extern "C" void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *) {
 						Leds::led_buffer[i] = rgb(v, v, v);
 					}
                 } break;
-        case    5: {
+        case    8: {
                     for (size_t c = 0; c < Leds::ledsN; c++) {
                         Leds::led_buffer[c] = rgb(fixed32<24>(0.0f), fixed32<24>(0.0f), fixed32<24>(0.0f));
                     }
