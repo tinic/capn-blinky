@@ -511,7 +511,23 @@ void Leds::transfer() {
 
     for (size_t c = 0; c < ledsN; c++) {
         auto convert_to_one_wire_spi = [] (uint32_t *p, uint16_t v) {
-            v = v < 384 ? ( ( v * 256 ) / 384 ) : v;
+            auto fix_ws2816 = [](uint16_t f) {
+                if (f > 65535 - (256 - 32)) {
+                    f = 65535 - (256 - 32);
+                }
+                if (f >= 32) {
+                    f += 256 - 32;
+                    if (f > 512) {
+                        if (f > 512 + 32) {
+                            f -= 32;
+                        } else {
+                            f = 512;
+                        }
+                    }
+                }
+                return f;
+            };
+            v = fix_ws2816(v);
             auto convert_half_to_spi = [] (uint8_t x) {
                 return 0x88888888 | (((x >>  4) | (x <<  6) | (x << 16) | (x << 26)) & 0x04040404)|
                                     (((x >>  1) | (x <<  9) | (x << 19) | (x << 29)) & 0x40404040);
