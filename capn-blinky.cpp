@@ -50,6 +50,12 @@ public:
 
     constexpr fixed32 &operator=(const fixed32& other) = default;
 
+    template<size_t obits> explicit constexpr operator fixed32<obits>() const {
+        fixed32<obits> ret;
+        ret.raw = raw << (obits - fbits);
+        return ret;
+    }
+
     constexpr fixed32 &operator+=(const fixed32 &b) {
         this->raw += b.raw;
         return *this;
@@ -186,56 +192,56 @@ template <size_t fbits> constexpr inline bool operator>=(const fixed32<fbits>& x
     return x.raw >= y.raw;
 }
 
-static constexpr fixed32<20> lerp(fixed32<20> a, fixed32<20> b, fixed32<20> t) {
+template<size_t fbits> static constexpr fixed32<fbits> lerp(fixed32<fbits> a, fixed32<fbits> b, fixed32<fbits> t) {
     return ( a + t * (b - a));
 }
 
-static constexpr fixed32<20> sin(fixed32<20> v) {
-    constexpr fixed32<20> table[] = {
-        fixed32<20>(+0.000000000000f),fixed32<20>(+0.098017140330f),fixed32<20>(+0.195090322016f),fixed32<20>(+0.290284677254f),
-        fixed32<20>(+0.382683432365f),fixed32<20>(+0.471396736826f),fixed32<20>(+0.555570233020f),fixed32<20>(+0.634393284164f),
-        fixed32<20>(+0.707106781187f),fixed32<20>(+0.773010453363f),fixed32<20>(+0.831469612303f),fixed32<20>(+0.881921264348f),
-        fixed32<20>(+0.923879532511f),fixed32<20>(+0.956940335732f),fixed32<20>(+0.980785280403f),fixed32<20>(+0.995184726672f),
-        fixed32<20>(+1.000000000000f),fixed32<20>(+0.995184726672f),fixed32<20>(+0.980785280403f),fixed32<20>(+0.956940335732f),
-        fixed32<20>(+0.923879532511f),fixed32<20>(+0.881921264348f),fixed32<20>(+0.831469612302f),fixed32<20>(+0.773010453363f),
-        fixed32<20>(+0.707106781186f),fixed32<20>(+0.634393284164f),fixed32<20>(+0.555570233019f),fixed32<20>(+0.471396736826f),
-        fixed32<20>(+0.382683432365f),fixed32<20>(+0.290284677254f),fixed32<20>(+0.195090322016f),fixed32<20>(+0.098017140329f),
-        fixed32<20>(-0.000000000000f),fixed32<20>(-0.098017140330f),fixed32<20>(-0.195090322016f),fixed32<20>(-0.290284677255f),
-        fixed32<20>(-0.382683432365f),fixed32<20>(-0.471396736826f),fixed32<20>(-0.555570233020f),fixed32<20>(-0.634393284164f),
-        fixed32<20>(-0.707106781187f),fixed32<20>(-0.773010453363f),fixed32<20>(-0.831469612303f),fixed32<20>(-0.881921264348f),
-        fixed32<20>(-0.923879532511f),fixed32<20>(-0.956940335732f),fixed32<20>(-0.980785280403f),fixed32<20>(-0.995184726672f),
-        fixed32<20>(-1.000000000000f),fixed32<20>(-0.995184726672f),fixed32<20>(-0.980785280403f),fixed32<20>(-0.956940335732f),
-        fixed32<20>(-0.923879532511f),fixed32<20>(-0.881921264348f),fixed32<20>(-0.831469612302f),fixed32<20>(-0.773010453363f),
-        fixed32<20>(-0.707106781186f),fixed32<20>(-0.634393284163f),fixed32<20>(-0.555570233019f),fixed32<20>(-0.471396736826f),
-        fixed32<20>(-0.382683432365f),fixed32<20>(-0.290284677254f),fixed32<20>(-0.195090322016f),fixed32<20>(-0.098017140329f)
+template<size_t fbits> static constexpr fixed32<fbits> sin(fixed32<fbits> v) {
+    constexpr fixed32<fbits> table[] = {
+        fixed32<fbits>(+0.000000000000f),fixed32<fbits>(+0.098017140330f),fixed32<fbits>(+0.195090322016f),fixed32<fbits>(+0.290284677254f),
+        fixed32<fbits>(+0.382683432365f),fixed32<fbits>(+0.471396736826f),fixed32<fbits>(+0.555570233020f),fixed32<fbits>(+0.634393284164f),
+        fixed32<fbits>(+0.707106781187f),fixed32<fbits>(+0.773010453363f),fixed32<fbits>(+0.831469612303f),fixed32<fbits>(+0.881921264348f),
+        fixed32<fbits>(+0.923879532511f),fixed32<fbits>(+0.956940335732f),fixed32<fbits>(+0.980785280403f),fixed32<fbits>(+0.995184726672f),
+        fixed32<fbits>(+1.000000000000f),fixed32<fbits>(+0.995184726672f),fixed32<fbits>(+0.980785280403f),fixed32<fbits>(+0.956940335732f),
+        fixed32<fbits>(+0.923879532511f),fixed32<fbits>(+0.881921264348f),fixed32<fbits>(+0.831469612302f),fixed32<fbits>(+0.773010453363f),
+        fixed32<fbits>(+0.707106781186f),fixed32<fbits>(+0.634393284164f),fixed32<fbits>(+0.555570233019f),fixed32<fbits>(+0.471396736826f),
+        fixed32<fbits>(+0.382683432365f),fixed32<fbits>(+0.290284677254f),fixed32<fbits>(+0.195090322016f),fixed32<fbits>(+0.098017140329f),
+        fixed32<fbits>(-0.000000000000f),fixed32<fbits>(-0.098017140330f),fixed32<fbits>(-0.195090322016f),fixed32<fbits>(-0.290284677255f),
+        fixed32<fbits>(-0.382683432365f),fixed32<fbits>(-0.471396736826f),fixed32<fbits>(-0.555570233020f),fixed32<fbits>(-0.634393284164f),
+        fixed32<fbits>(-0.707106781187f),fixed32<fbits>(-0.773010453363f),fixed32<fbits>(-0.831469612303f),fixed32<fbits>(-0.881921264348f),
+        fixed32<fbits>(-0.923879532511f),fixed32<fbits>(-0.956940335732f),fixed32<fbits>(-0.980785280403f),fixed32<fbits>(-0.995184726672f),
+        fixed32<fbits>(-1.000000000000f),fixed32<fbits>(-0.995184726672f),fixed32<fbits>(-0.980785280403f),fixed32<fbits>(-0.956940335732f),
+        fixed32<fbits>(-0.923879532511f),fixed32<fbits>(-0.881921264348f),fixed32<fbits>(-0.831469612302f),fixed32<fbits>(-0.773010453363f),
+        fixed32<fbits>(-0.707106781186f),fixed32<fbits>(-0.634393284163f),fixed32<fbits>(-0.555570233019f),fixed32<fbits>(-0.471396736826f),
+        fixed32<fbits>(-0.382683432365f),fixed32<fbits>(-0.290284677254f),fixed32<fbits>(-0.195090322016f),fixed32<fbits>(-0.098017140329f)
     };
-    fixed32<20> i0 = table[(((v * fixed32<20>(10.1859163579f)).raw >> 20) + 0) % 64];
-    fixed32<20> i1 = table[(((v * fixed32<20>(10.1859163579f)).raw >> 20) + 1) % 64];
-    return lerp(i0, i1, v.frac());
+    fixed32<fbits> i0 = table[(((v * fixed32<fbits>(10.1859163579f)).raw >> fbits) + 0) % 64];
+    fixed32<fbits> i1 = table[(((v * fixed32<fbits>(10.1859163579f)).raw >> fbits) + 1) % 64];
+    return lerp(i0, i1, (v * fixed32<fbits>(64.0f)).frac());
 }
 
-static constexpr fixed32<20> cos(fixed32<20> v) {
-    constexpr fixed32<20> table[] = {
-        fixed32<20>(+1.000000000000f),fixed32<20>(+0.995184726672f),fixed32<20>(+0.980785280403f),fixed32<20>(+0.956940335732f),
-        fixed32<20>(+0.923879532511f),fixed32<20>(+0.881921264348f),fixed32<20>(+0.831469612303f),fixed32<20>(+0.773010453363f),
-        fixed32<20>(+0.707106781187f),fixed32<20>(+0.634393284164f),fixed32<20>(+0.555570233020f),fixed32<20>(+0.471396736826f),
-        fixed32<20>(+0.382683432365f),fixed32<20>(+0.290284677254f),fixed32<20>(+0.195090322016f),fixed32<20>(+0.098017140329f),
-        fixed32<20>(-0.000000000000f),fixed32<20>(-0.098017140330f),fixed32<20>(-0.195090322016f),fixed32<20>(-0.290284677255f),
-        fixed32<20>(-0.382683432365f),fixed32<20>(-0.471396736826f),fixed32<20>(-0.555570233020f),fixed32<20>(-0.634393284164f),
-        fixed32<20>(-0.707106781187f),fixed32<20>(-0.773010453363f),fixed32<20>(-0.831469612303f),fixed32<20>(-0.881921264348f),
-        fixed32<20>(-0.923879532511f),fixed32<20>(-0.956940335732f),fixed32<20>(-0.980785280403f),fixed32<20>(-0.995184726672f),
-        fixed32<20>(-1.000000000000f),fixed32<20>(-0.995184726672f),fixed32<20>(-0.980785280403f),fixed32<20>(-0.956940335732f),
-        fixed32<20>(-0.923879532511f),fixed32<20>(-0.881921264348f),fixed32<20>(-0.831469612302f),fixed32<20>(-0.773010453363f),
-        fixed32<20>(-0.707106781186f),fixed32<20>(-0.634393284163f),fixed32<20>(-0.555570233019f),fixed32<20>(-0.471396736826f),
-        fixed32<20>(-0.382683432365f),fixed32<20>(-0.290284677254f),fixed32<20>(-0.195090322016f),fixed32<20>(-0.098017140329f),
-        fixed32<20>(+0.000000000000f),fixed32<20>(+0.098017140330f),fixed32<20>(+0.195090322016f),fixed32<20>(+0.290284677255f),
-        fixed32<20>(+0.382683432365f),fixed32<20>(+0.471396736826f),fixed32<20>(+0.555570233020f),fixed32<20>(+0.634393284164f),
-        fixed32<20>(+0.707106781187f),fixed32<20>(+0.773010453363f),fixed32<20>(+0.831469612303f),fixed32<20>(+0.881921264349f),
-        fixed32<20>(+0.923879532511f),fixed32<20>(+0.956940335732f),fixed32<20>(+0.980785280403f),fixed32<20>(+0.995184726672f),
+template<size_t fbits> static constexpr fixed32<fbits> cos(fixed32<fbits> v) {
+    constexpr fixed32<fbits> table[] = {
+        fixed32<fbits>(+1.000000000000f),fixed32<fbits>(+0.995184726672f),fixed32<fbits>(+0.980785280403f),fixed32<fbits>(+0.956940335732f),
+        fixed32<fbits>(+0.923879532511f),fixed32<fbits>(+0.881921264348f),fixed32<fbits>(+0.831469612303f),fixed32<fbits>(+0.773010453363f),
+        fixed32<fbits>(+0.707106781187f),fixed32<fbits>(+0.634393284164f),fixed32<fbits>(+0.555570233020f),fixed32<fbits>(+0.471396736826f),
+        fixed32<fbits>(+0.382683432365f),fixed32<fbits>(+0.290284677254f),fixed32<fbits>(+0.195090322016f),fixed32<fbits>(+0.098017140329f),
+        fixed32<fbits>(-0.000000000000f),fixed32<fbits>(-0.098017140330f),fixed32<fbits>(-0.195090322016f),fixed32<fbits>(-0.290284677255f),
+        fixed32<fbits>(-0.382683432365f),fixed32<fbits>(-0.471396736826f),fixed32<fbits>(-0.555570233020f),fixed32<fbits>(-0.634393284164f),
+        fixed32<fbits>(-0.707106781187f),fixed32<fbits>(-0.773010453363f),fixed32<fbits>(-0.831469612303f),fixed32<fbits>(-0.881921264348f),
+        fixed32<fbits>(-0.923879532511f),fixed32<fbits>(-0.956940335732f),fixed32<fbits>(-0.980785280403f),fixed32<fbits>(-0.995184726672f),
+        fixed32<fbits>(-1.000000000000f),fixed32<fbits>(-0.995184726672f),fixed32<fbits>(-0.980785280403f),fixed32<fbits>(-0.956940335732f),
+        fixed32<fbits>(-0.923879532511f),fixed32<fbits>(-0.881921264348f),fixed32<fbits>(-0.831469612302f),fixed32<fbits>(-0.773010453363f),
+        fixed32<fbits>(-0.707106781186f),fixed32<fbits>(-0.634393284163f),fixed32<fbits>(-0.555570233019f),fixed32<fbits>(-0.471396736826f),
+        fixed32<fbits>(-0.382683432365f),fixed32<fbits>(-0.290284677254f),fixed32<fbits>(-0.195090322016f),fixed32<fbits>(-0.098017140329f),
+        fixed32<fbits>(+0.000000000000f),fixed32<fbits>(+0.098017140330f),fixed32<fbits>(+0.195090322016f),fixed32<fbits>(+0.290284677255f),
+        fixed32<fbits>(+0.382683432365f),fixed32<fbits>(+0.471396736826f),fixed32<fbits>(+0.555570233020f),fixed32<fbits>(+0.634393284164f),
+        fixed32<fbits>(+0.707106781187f),fixed32<fbits>(+0.773010453363f),fixed32<fbits>(+0.831469612303f),fixed32<fbits>(+0.881921264349f),
+        fixed32<fbits>(+0.923879532511f),fixed32<fbits>(+0.956940335732f),fixed32<fbits>(+0.980785280403f),fixed32<fbits>(+0.995184726672f),
     };
-    fixed32<20> i0 = table[(((v * fixed32<20>(10.1859163579f)).raw >> 20) + 0) % 64];
-    fixed32<20> i1 = table[(((v * fixed32<20>(10.1859163579f)).raw >> 20) + 1) % 64];
-    return lerp(i0, i1, v.frac());
+    fixed32<fbits> i0 = table[(((v * fixed32<fbits>(10.1859163579f)).raw >> fbits) + 0) % 64];
+    fixed32<fbits> i1 = table[(((v * fixed32<fbits>(10.1859163579f)).raw >> fbits) + 1) % 64];
+    return lerp(i0, i1, (v * fixed32<fbits>(64.0f)).frac());
 };
 
 class hsv;
@@ -633,7 +639,7 @@ extern "C" void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *) {
         Model::instance().button_down = false;
     }
 
-    static fixed32<20> tick;
+    static fixed32<16> tick;
 
     switch(Model::instance().Pattern() % 9) {
         case    0: {
@@ -646,7 +652,7 @@ extern "C" void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *) {
 //                    }
                     if ((tick.whole() & 0xF) == 0) {
                         for (size_t c = 0; c < Leds::ledsN; c++) {
-                            fixed32<20> x = tick * fixed32<20>(2.0f) + ((std::get<0>(Leds::map[c]) - fixed32<20>(0.5f)) * cos(h) - (std::get<1>(Leds::map[c]) - fixed32<20>(0.5f)) * sin(h));
+                            fixed32<20> x = fixed32<20>(tick) * fixed32<20>(2.0f) + ((std::get<0>(Leds::map[c]) - fixed32<20>(0.5f)) * cos(h) - (std::get<1>(Leds::map[c]) - fixed32<20>(0.5f)) * sin(h));
                             Leds::led_buffer[c] += rgb(hsv(fixed32<20>(0.0f), fixed32<20>(0.0f), ((x.reflect() - fixed32<20>(0.75f) ) * fixed32<20>(4.0f)).clamp(fixed32<20>(0.0f), fixed32<20>(1.0f))));
                         }
                     }
@@ -669,24 +675,25 @@ extern "C" void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *) {
                 } break;
         case    4: {
                     for (size_t c = 0; c < Leds::ledsN; c++) {
-                        auto h = ( fixed32<20>(1.0f) - (fixed32<20>(tick) * fixed32<20>(0.2f)).frac() ) * fixed32<20>(6.28318530718f);
-                        auto x = (std::get<0>(Leds::map[c]) - fixed32<20>(0.5f)) * cos(h) - (std::get<1>(Leds::map[c]) - fixed32<20>(0.5f)) * sin(h);
+                        auto h = (fixed32<20>(1.0f) - fixed32<20>(tick * fixed32<16>(0.04f)).frac()) * fixed32<20>(6.28318530718f);
+                        auto x = (std::get<0>(Leds::map[c]) - fixed32<20>(0.5f)) * cos(h) - 
+                                 (std::get<1>(Leds::map[c]) - fixed32<20>(0.5f)) * sin(h);
                         auto hue((x * fixed32<20>(0.5f) + fixed32<20>(0.5f) + h).frac());
-                        Leds::led_buffer[c] = rgb(hsv(hue, fixed32<20>(1.0f), fixed32<20>(1.0f)));
+                        Leds::led_buffer[c] = rgb(hsv(hue, fixed32<20>(1.0f), fixed32<20>(1.0f) - fixed32<20>(0.95f) * fixed32<20>(std::get<2>(Leds::map[c]))));
                     }
                 } break;
         case    5: {
                     for (size_t c = 0; c < Leds::ledsN; c++) {
-                        auto h = fixed32<20>(1.0f) - (fixed32<20>(tick) * fixed32<20>(0.2f)).frac();
+                        auto h = (fixed32<20>(1.0f) - fixed32<20>(tick * fixed32<16>(0.04f)).frac());
                         auto hue((h + fixed32<20>(std::get<0>(Leds::map[c])) * fixed32<20>(std::get<1>(Leds::map[c])) * fixed32<20>(1.0f / 2.0f)).frac());
-                        Leds::led_buffer[c] = rgb(hsv(hue, fixed32<20>(1.0f), fixed32<20>(1.0f)));
+                        Leds::led_buffer[c] = rgb(hsv(hue, fixed32<20>(1.0f), fixed32<20>(1.0f) - fixed32<20>(0.95f) * fixed32<20>(std::get<2>(Leds::map[c]))));
                     }
                 } break;
         case    6: {
                     for (size_t c = 0; c < Leds::ledsN; c++) {
-                        auto h = fixed32<20>(1.0f) - (fixed32<20>(tick) * fixed32<20>(0.02f)).frac();
+                        auto h = (fixed32<20>(1.0f) - fixed32<20>(tick * fixed32<16>(0.02f)).frac());
                         auto hue((h - fixed32<20>(std::get<0>(Leds::map[c])) * fixed32<20>(1.0f / 8.0f)).frac());
-                        Leds::led_buffer[c] = rgb(hsv(hue, fixed32<20>(1.0f), fixed32<20>(1.0f)));
+                        Leds::led_buffer[c] = rgb(hsv(hue, fixed32<20>(1.0f), fixed32<20>(1.0f) - fixed32<20>(0.95f) * fixed32<20>(std::get<2>(Leds::map[c]))));
                     }
                 } break;
         case    7: {
@@ -712,7 +719,7 @@ extern "C" void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *) {
 					}
                 } break;
     }
-    tick.raw += 17180;
+    tick += fixed32<16>(1.0f/60.0f);
 #ifndef USE_HAL_DRIVER
     printf("\033[0H"); fflush(stdout);    
     for (size_t c = 0; c < Leds::ledsN; c++) {
