@@ -675,10 +675,11 @@ extern "C" void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *) {
                 } break;
         case    4: {
                     for (size_t c = 0; c < Leds::ledsN; c++) {
-                        auto h = (fixed32<20>(1.0f) - fixed32<20>(tick * fixed32<16>(0.04f)).frac()) * fixed32<20>(6.28318530718f);
+                        auto t = fixed32<20>(1.0f) - fixed32<20>(tick * fixed32<16>(0.04f)).frac();
+                        auto h = t * fixed32<20>(6.28318530718f);
                         auto x = (std::get<0>(Leds::map[c]) - fixed32<20>(0.5f)) * cos(h) - 
                                  (std::get<1>(Leds::map[c]) - fixed32<20>(0.5f)) * sin(h);
-                        auto hue((x * fixed32<20>(0.5f) + fixed32<20>(0.5f) + h).frac());
+                        auto hue((x * fixed32<20>(0.5f) + fixed32<20>(0.5f) + t * fixed32<20>(6.0f)).frac());
                         Leds::led_buffer[c] = rgb(hsv(hue, fixed32<20>(1.0f), fixed32<20>(1.0f) - fixed32<20>(0.95f) * fixed32<20>(std::get<2>(Leds::map[c]))));
                     }
                 } break;
