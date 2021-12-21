@@ -421,39 +421,6 @@ rgb::rgb(const hsv &from) {
     }
 }
 
-class pseudo_random {
-public:
-    
-    void set_seed(uint32_t seed) {
-        uint32_t i;
-        a = 0xf1ea5eed, b = c = d = seed;
-        for (i=0; i<20; ++i) {
-            (void)get();
-        }
-    }
-
-    #define rot(x,k) (((x)<<(k))|((x)>>(32-(k))))
-    uint32_t get() {
-        uint32_t e = a - rot(b, 27);
-        a = b ^ rot(c, 17);
-        b = c + d;
-        c = d + e;
-        d = e + a;
-        return d;
-    }
-
-    uint32_t get(uint32_t lower, uint32_t upper) {
-        return (static_cast<int32_t>(get()) % (upper-lower)) + lower;
-    }
-
-private:
-    uint32_t a; 
-    uint32_t b; 
-    uint32_t c; 
-    uint32_t d; 
-
-};
-
 class Leds {
 public:
     static constexpr size_t ledsN = 12;
@@ -561,6 +528,42 @@ public:
 
     void load();
     void save();
+
+    class pseudo_random {
+    public:
+        
+        void set_seed(uint32_t seed) {
+            uint32_t i;
+            a = 0xf1ea5eed, b = c = d = seed;
+            for (i=0; i<20; ++i) {
+                (void)get();
+            }
+        }
+
+        #define rot(x,k) (((x)<<(k))|((x)>>(32-(k))))
+        uint32_t get() {
+            uint32_t e = a - rot(b, 27);
+            a = b ^ rot(c, 17);
+            b = c + d;
+            c = d + e;
+            d = e + a;
+            return d;
+        }
+
+        uint32_t get(uint32_t lower, uint32_t upper) {
+            return (static_cast<int32_t>(get()) % (upper-lower)) + lower;
+        }
+
+    private:
+        uint32_t a; 
+        uint32_t b; 
+        uint32_t c; 
+        uint32_t d; 
+
+    } rnd;
+    
+    bool button_down = false;
+
 private:
     size_t pattern;
 
@@ -592,19 +595,25 @@ void Model::save() {
 #endif  // #ifdef USE_HAL_DRIVER
 }
 
-static pseudo_random rnd;
-
 void Model::init() {
     load();
     rnd.set_seed(0xDEADBEEF);
 }
 
-extern "C" void HAL_GPIO_EXTI_Callback(uint16_t) {
-    Model::instance().IncPattern();
-    Model::instance().save();
+extern "C" void HAL_GPIO_EXTI_Callback(uint16_t pin) {
+    if (pin == GPIO_PIN_1) {
+        Model::instance().button_down = true;
+    }
 }
 
 extern "C" void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *) {
+
+    if (Model::instance().button_down && HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_1) == GPIO_PIN_RESET) {
+        Model::instance().IncPattern();
+        Model::instance().save();
+        Model::instance().button_down = false;
+    }
+
     static fixed32<24> tick;
     switch(Model::instance().Pattern() % 7) {
         case    0: {
@@ -655,8 +664,8 @@ extern "C" void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *) {
                         Leds::led_buffer[c] = rgb(fixed32<24>(0.0f), fixed32<24>(0.0f), fixed32<24>(0.0f));
                     }
 					for (size_t c = 0; c < 6; c++) {
-						int32_t i = rnd.get(0,Leds::ledsN);
-						fixed32<24> v = fixed32<24>(1.0f/127.0f)*fixed32<24>(rnd.get(0,127));
+						int32_t i = Model::instance().rnd.get(0,Leds::ledsN);
+						fixed32<24> v = fixed32<24>(1.0f/127.0f)*fixed32<24>(Model::instance().rnd.get(0,127));
 						Leds::led_buffer[i] = rgb(v, v, v);
 					}
                 } break;
@@ -665,11 +674,11 @@ extern "C" void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *) {
                         Leds::led_buffer[c] = rgb(fixed32<24>(0.0f), fixed32<24>(0.0f), fixed32<24>(0.0f));
                     }
 					for (size_t c = 0; c < 6; c++) {
-						int32_t i = rnd.get(0,Leds::ledsN);
+						int32_t i =  Model::instance().rnd.get(0,Leds::ledsN);
 						Leds::led_buffer[i] = rgb(
-							fixed32<24>(1.0f/127.0f)*fixed32<24>(rnd.get(0,127)), 
-							fixed32<24>(1.0f/127.0f)*fixed32<24>(rnd.get(0,127)), 
-							fixed32<24>(1.0f/127.0f)*fixed32<24>(rnd.get(0,127)));
+							fixed32<24>(1.0f/127.0f)*fixed32<24>(Model::instance().rnd.get(0,127)), 
+							fixed32<24>(1.0f/127.0f)*fixed32<24>(Model::instance().rnd.get(0,127)), 
+							fixed32<24>(1.0f/127.0f)*fixed32<24>(Model::instance().rnd.get(0,127)));
 					}
                 } break;
     }
