@@ -534,9 +534,9 @@ void Leds::transfer() {
             *p++ = convert_half_to_spi((v>>0)&0xFF);
             return p;
         };
-        ptr = convert_to_one_wire_spi(ptr, ((led_buffer[c].g.clamp(fixed32<20>(0.0f), fixed32<20>(1.0f))) * fixed32<20>(1.0f/256.0f)).raw);
-        ptr = convert_to_one_wire_spi(ptr, ((led_buffer[c].r.clamp(fixed32<20>(0.0f), fixed32<20>(1.0f))) * fixed32<20>(1.0f/256.0f)).raw);
-        ptr = convert_to_one_wire_spi(ptr, ((led_buffer[c].b.clamp(fixed32<20>(0.0f), fixed32<20>(1.0f))) * fixed32<20>(1.0f/256.0f)).raw);
+        ptr = convert_to_one_wire_spi(ptr, ((led_buffer[c].g.clamp(fixed32<20>(0.0f), fixed32<20>(256.0f))) * fixed32<20>(1.0f/256.0f)).raw);
+        ptr = convert_to_one_wire_spi(ptr, ((led_buffer[c].r.clamp(fixed32<20>(0.0f), fixed32<20>(256.0f))) * fixed32<20>(1.0f/256.0f)).raw);
+        ptr = convert_to_one_wire_spi(ptr, ((led_buffer[c].b.clamp(fixed32<20>(0.0f), fixed32<20>(256.0f))) * fixed32<20>(1.0f/256.0f)).raw);
     }
 
     for (size_t c = 0; c < spiPaddingBytes/(sizeof(uint32_t)*2); c++ ) {
@@ -677,7 +677,7 @@ extern "C" void HAL_SysTick_User(void) {
                              (std::get<1>(Leds::map[c]) - fixed32<20>(0.5f)) * sin(cur_angle));
                         if (x.abs() < fixed32<20>(1.0f)) {
                             auto b = ((x.abs().reflect() - fixed32<20>(0.5f)) * fixed32<20>(4.0f)).clamp(fixed32<20>(0.0f), fixed32<20>(1.0f));
-                            Leds::led_buffer[c] += rgb(hsv(fixed32<20>(0.0f), fixed32<20>(0.0f), b));
+                            Leds::led_buffer[c] += rgb(hsv(fixed32<20>(0.0f), fixed32<20>(0.0f), b)) * fixed32<20>(4.0f);
                         }
                     }
                 } break;
