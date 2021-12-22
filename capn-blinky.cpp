@@ -633,7 +633,7 @@ extern "C" void HAL_GPIO_EXTI_Callback(uint16_t pin) {
 #endif  // #ifdef USE_HAL_DRIVER
 }
 
-extern "C" void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *) {
+extern "C" void HAL_SysTick_User(void) {
 
 #ifdef USE_HAL_DRIVER
     if (Model::instance().button_down && HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_1) == GPIO_PIN_RESET) {
@@ -735,7 +735,7 @@ extern "C" void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *) {
                     }
                 } break;
     }
-    tick += fixed32<16>(1.0f/(8000000.0f/65535.0f/2.0f));
+    tick += fixed32<16>(1.0f/(100.0f));
 #ifndef USE_HAL_DRIVER
     printf("\033[0H"); fflush(stdout);    
     for (size_t c = 0; c < Leds::ledsN; c++) {
