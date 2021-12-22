@@ -360,6 +360,12 @@ public:
 
 };
 
+static constexpr rgb lerp(rgb a, rgb b, fixed32<20> t) {
+    return rgb((a.r + t * (b.r - a.r)),
+               (a.g + t * (b.g - a.g)),
+               (a.b + t * (b.b - a.b)));
+}
+
 class hsv {
 public:
     fixed32<20> h;
@@ -648,7 +654,10 @@ extern "C" void HAL_SysTick_User(void) {
     switch(Model::instance().Pattern() % 9) {
         case    0: {
                     for (size_t c = 0; c < Leds::ledsN; c++) {
-                        Leds::led_buffer[c] = rgb(0xAA8800);
+                        auto i = (fixed32<20>(2.00f) * fixed32<20>(std::get<2>(Leds::map[c]))).clamp(fixed32<20>(0.0f), fixed32<20>(1.0f));
+                        auto col0 = rgb(0xBB9900);
+                        auto col1 = rgb(0xAA5500);
+                        Leds::led_buffer[c] = lerp(col0, col1, i);
                     }
 
                     static auto prev_tick = fixed32<16>(0.0f);
@@ -726,7 +735,10 @@ extern "C" void HAL_SysTick_User(void) {
                 } break;
         case    7: {
                     for (size_t c = 0; c < Leds::ledsN; c++) {
-                        Leds::led_buffer[c] = rgb(hsv(fixed32<20>(0.9f), fixed32<20>(1.00f) + fixed32<20>(1.75f) * fixed32<20>(std::get<2>(Leds::map[c])), fixed32<20>(1.0f) - fixed32<20>(0.9f) * fixed32<20>(std::get<2>(Leds::map[c]))));
+                        auto i = (fixed32<20>(2.00f) * fixed32<20>(std::get<2>(Leds::map[c]))).clamp(fixed32<20>(0.0f), fixed32<20>(1.0f));
+                        auto col0 = rgb(0xFF1111);
+                        auto col1 = rgb(0x1111FF);
+                        Leds::led_buffer[c] = lerp(col0, col1, i);
                     }
                 } break;
         case    8: {
