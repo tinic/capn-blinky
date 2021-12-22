@@ -654,20 +654,22 @@ extern "C" void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *) {
                     static auto prev_tick = fixed32<16>(0.0f);
                     static auto next_tick = fixed32<16>(0.0f);
                     static auto cur_angle = fixed32<20>(0.0f);
-                    if ( next_tick < tick ) {
+                    if ( next_tick <= tick ) {
                         prev_tick = next_tick;
-                        next_tick = tick + fixed32<16>(Model::instance().rnd.get(5,10));
-                        cur_angle = fixed32<20>(256.0f/6.283185307179f)*fixed32<20>(Model::instance().rnd.get(0,256));
+                        next_tick = tick + fixed32<16>(Model::instance().rnd.get(6,24));
+                        cur_angle = fixed32<20>(6.283185307179f/256.0f)*fixed32<20>(Model::instance().rnd.get(0,256));
                     }
 
                     auto now_time = tick - prev_tick;
 
                     for (size_t c = 0; c < Leds::ledsN; c++) {
-                        fixed32<20> x = fixed32<20>(now_time) +
-                            ((std::get<0>(Leds::map[c]) - fixed32<20>(0.5f)) * fixed32<20>(2.0f) * cos(cur_angle) - 
-                             (std::get<1>(Leds::map[c]) - fixed32<20>(0.5f)) * fixed32<20>(2.0f) * sin(cur_angle));
-                        auto b = ((x.abs().reflect() - fixed32<20>(0.75f)) * fixed32<20>(4.0f)).clamp(fixed32<20>(0.0f), fixed32<20>(1.0f));
-                        Leds::led_buffer[c] += rgb(hsv(fixed32<20>(0.0f), fixed32<20>(0.0f), b));
+                        fixed32<20> x = fixed32<20>(now_time) * fixed32<20>(4.0f) +
+                            ((std::get<0>(Leds::map[c]) - fixed32<20>(0.5f)) * cos(cur_angle) - 
+                             (std::get<1>(Leds::map[c]) - fixed32<20>(0.5f)) * sin(cur_angle));
+                        if (x.abs() < fixed32<20>(1.0f)) {
+                            auto b = ((x.abs().reflect() - fixed32<20>(0.5f)) * fixed32<20>(4.0f)).clamp(fixed32<20>(0.0f), fixed32<20>(1.0f));
+                            Leds::led_buffer[c] += rgb(hsv(fixed32<20>(0.0f), fixed32<20>(0.0f), b));
+                        }
                     }
                 } break;
         case    1: {
@@ -733,7 +735,7 @@ extern "C" void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *) {
                     }
                 } break;
     }
-    tick += fixed32<16>(1.0f/30.0f);
+    tick += fixed32<16>(1.0f/(8000000.0f/65535.0f/2.0f));
 #ifndef USE_HAL_DRIVER
     printf("\033[0H"); fflush(stdout);    
     for (size_t c = 0; c < Leds::ledsN; c++) {
