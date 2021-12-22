@@ -64,5 +64,3 @@ void TIM21_IRQHandler(void);
 #endif
 
 #endif /* __STM32L0xx_IT_H */
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

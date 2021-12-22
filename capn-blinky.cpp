@@ -528,9 +528,9 @@ void Leds::transfer() {
             *p++ = convert_half_to_spi((v>>0)&0xFF);
             return p;
         };
-        ptr = convert_to_one_wire_spi(ptr, ((led_buffer[c].g.clamp(fixed32<20>(0.0f), fixed32<20>(1.0f))) * fixed32<20>(1.0f/128.0f)).raw);
-        ptr = convert_to_one_wire_spi(ptr, ((led_buffer[c].r.clamp(fixed32<20>(0.0f), fixed32<20>(1.0f))) * fixed32<20>(1.0f/128.0f)).raw);
-        ptr = convert_to_one_wire_spi(ptr, ((led_buffer[c].b.clamp(fixed32<20>(0.0f), fixed32<20>(1.0f))) * fixed32<20>(1.0f/128.0f)).raw);
+        ptr = convert_to_one_wire_spi(ptr, ((led_buffer[c].g.clamp(fixed32<20>(0.0f), fixed32<20>(1.0f))) * fixed32<20>(1.0f/256.0f)).raw);
+        ptr = convert_to_one_wire_spi(ptr, ((led_buffer[c].r.clamp(fixed32<20>(0.0f), fixed32<20>(1.0f))) * fixed32<20>(1.0f/256.0f)).raw);
+        ptr = convert_to_one_wire_spi(ptr, ((led_buffer[c].b.clamp(fixed32<20>(0.0f), fixed32<20>(1.0f))) * fixed32<20>(1.0f/256.0f)).raw);
     }
 
     for (size_t c = 0; c < spiPaddingBytes/(sizeof(uint32_t)*2); c++ ) {
@@ -626,54 +626,57 @@ void Model::init() {
 }
 
 extern "C" void HAL_GPIO_EXTI_Callback(uint16_t pin) {
+#ifdef USE_HAL_DRIVER
     if (pin == GPIO_PIN_1) {
         Model::instance().button_down = true;
     }
+#endif  // #ifdef USE_HAL_DRIVER
 }
 
 extern "C" void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *) {
 
+#ifdef USE_HAL_DRIVER
     if (Model::instance().button_down && HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_1) == GPIO_PIN_RESET) {
         Model::instance().IncPattern();
         Model::instance().save();
         Model::instance().button_down = false;
     }
+#endif  // #ifdef USE_HAL_DRIVER
 
     static fixed32<16> tick;
 
     switch(Model::instance().Pattern() % 9) {
         case    0: {
                     for (size_t c = 0; c < Leds::ledsN; c++) {
-                        Leds::led_buffer[c] = rgb(0x0033FF);
+                        Leds::led_buffer[c] = rgb(0xAA8800);
                     }
-                    static auto h = fixed32<20>(0.0f);
-//                    if ((tick.whole() & 0xF) == 0) {
-//                        h = fixed32<20>(256.0f/6.283185307179f)*fixed32<20>(Model::instance().rnd.get(0,256));
-//                    }
-                    if ((tick.whole() & 0xF) == 0) {
-                        for (size_t c = 0; c < Leds::ledsN; c++) {
-                            fixed32<20> x = fixed32<20>(tick) * fixed32<20>(2.0f) + ((std::get<0>(Leds::map[c]) - fixed32<20>(0.5f)) * cos(h) - (std::get<1>(Leds::map[c]) - fixed32<20>(0.5f)) * sin(h));
-                            Leds::led_buffer[c] += rgb(hsv(fixed32<20>(0.0f), fixed32<20>(0.0f), ((x.reflect() - fixed32<20>(0.75f) ) * fixed32<20>(4.0f)).clamp(fixed32<20>(0.0f), fixed32<20>(1.0f))));
-                        }
+
+                    static auto prev_tick = fixed32<16>(0.0f);
+                    static auto next_tick = fixed32<16>(0.0f);
+                    static auto cur_angle = fixed32<20>(0.0f);
+                    if ( next_tick < tick ) {
+                        prev_tick = next_tick;
+                        next_tick = tick + fixed32<16>(Model::instance().rnd.get(5,10));
+                        cur_angle = fixed32<20>(256.0f/6.283185307179f)*fixed32<20>(Model::instance().rnd.get(0,256));
+                    }
+
+                    auto now_time = tick - prev_tick;
+
+                    for (size_t c = 0; c < Leds::ledsN; c++) {
+                        fixed32<20> x = fixed32<20>(now_time) +
+                            ((std::get<0>(Leds::map[c]) - fixed32<20>(0.5f)) * fixed32<20>(2.0f) * cos(cur_angle) - 
+                             (std::get<1>(Leds::map[c]) - fixed32<20>(0.5f)) * fixed32<20>(2.0f) * sin(cur_angle));
+                        auto b = ((x.abs().reflect() - fixed32<20>(0.75f)) * fixed32<20>(4.0f)).clamp(fixed32<20>(0.0f), fixed32<20>(1.0f));
+                        Leds::led_buffer[c] += rgb(hsv(fixed32<20>(0.0f), fixed32<20>(0.0f), b));
                     }
                 } break;
         case    1: {
-                    for (size_t c = 0; c < Leds::ledsN; c++) {
-                        Leds::led_buffer[c] = rgb(hsv(fixed32<20>(0.9f), fixed32<20>(1.00f) + fixed32<20>(1.75f) * fixed32<20>(std::get<2>(Leds::map[c])), fixed32<20>(1.0f) - fixed32<20>(0.9f) * fixed32<20>(std::get<2>(Leds::map[c]))));
-                    }
-                } break;
-        case    2: {
-                    for (size_t c = 0; c < Leds::ledsN; c++) {
-                        Leds::led_buffer[c] = rgb(hsv(fixed32<20>(0.1f), fixed32<20>(1.00f) + fixed32<20>(1.50f) * fixed32<20>(std::get<2>(Leds::map[c])), fixed32<20>(1.0f) - fixed32<20>(0.9f) * fixed32<20>(std::get<2>(Leds::map[c]))));
-                    }
-                } break;
-        case    3: {
                     for (size_t c = 0; c < Leds::ledsN; c++) {
                         fixed32<20> h = fixed32<20>(1.0f) - (fixed32<20>(tick) * fixed32<20>(0.02f)).frac();
                         Leds::led_buffer[c] = rgb(hsv(h, (fixed32<20>(2.00f) * fixed32<20>(std::get<2>(Leds::map[c]))).clamp(fixed32<20>(0.0f), fixed32<20>(1.0f)), fixed32<20>(1.0f) - fixed32<20>(1.0f) * fixed32<20>(std::get<2>(Leds::map[c]))));
                     }
                 } break;
-        case    4: {
+        case    2: {
                     for (size_t c = 0; c < Leds::ledsN; c++) {
                         auto t = fixed32<20>(1.0f) - fixed32<20>(tick * fixed32<16>(0.04f)).frac();
                         auto h = t * fixed32<20>(6.28318530718f);
@@ -683,21 +686,21 @@ extern "C" void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *) {
                         Leds::led_buffer[c] = rgb(hsv(hue, fixed32<20>(1.0f), fixed32<20>(1.0f) - fixed32<20>(0.95f) * fixed32<20>(std::get<2>(Leds::map[c]))));
                     }
                 } break;
-        case    5: {
+        case    3: {
                     for (size_t c = 0; c < Leds::ledsN; c++) {
                         auto h = (fixed32<20>(1.0f) - fixed32<20>(tick * fixed32<16>(0.04f)).frac());
                         auto hue((h + fixed32<20>(std::get<0>(Leds::map[c])) * fixed32<20>(std::get<1>(Leds::map[c])) * fixed32<20>(1.0f / 2.0f)).frac());
                         Leds::led_buffer[c] = rgb(hsv(hue, fixed32<20>(1.0f), fixed32<20>(1.0f) - fixed32<20>(0.95f) * fixed32<20>(std::get<2>(Leds::map[c]))));
                     }
                 } break;
-        case    6: {
+        case    4: {
                     for (size_t c = 0; c < Leds::ledsN; c++) {
                         auto h = (fixed32<20>(1.0f) - fixed32<20>(tick * fixed32<16>(0.02f)).frac());
                         auto hue((h - fixed32<20>(std::get<0>(Leds::map[c])) * fixed32<20>(1.0f / 8.0f)).frac());
                         Leds::led_buffer[c] = rgb(hsv(hue, fixed32<20>(1.0f), fixed32<20>(1.0f) - fixed32<20>(0.95f) * fixed32<20>(std::get<2>(Leds::map[c]))));
                     }
                 } break;
-        case    7: {
+        case    5: {
                     for (size_t c = 0; c < Leds::ledsN; c++) {
                         Leds::led_buffer[c] = rgb(fixed32<20>(0.0f), fixed32<20>(0.0f), fixed32<20>(0.0f));
                     }
@@ -707,7 +710,7 @@ extern "C" void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *) {
 						Leds::led_buffer[i] = rgb(v, v, v);
 					}
                 } break;
-        case    8: {
+        case    6: {
                     for (size_t c = 0; c < Leds::ledsN; c++) {
                         Leds::led_buffer[c] = rgb(fixed32<20>(0.0f), fixed32<20>(0.0f), fixed32<20>(0.0f));
                     }
@@ -719,17 +722,27 @@ extern "C" void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *) {
 							fixed32<20>(1.0f/127.0f)*fixed32<20>(Model::instance().rnd.get(0,127)));
 					}
                 } break;
+        case    7: {
+                    for (size_t c = 0; c < Leds::ledsN; c++) {
+                        Leds::led_buffer[c] = rgb(hsv(fixed32<20>(0.9f), fixed32<20>(1.00f) + fixed32<20>(1.75f) * fixed32<20>(std::get<2>(Leds::map[c])), fixed32<20>(1.0f) - fixed32<20>(0.9f) * fixed32<20>(std::get<2>(Leds::map[c]))));
+                    }
+                } break;
+        case    8: {
+                    for (size_t c = 0; c < Leds::ledsN; c++) {
+                        Leds::led_buffer[c] = rgb(hsv(fixed32<20>(0.1f), fixed32<20>(1.00f) + fixed32<20>(1.50f) * fixed32<20>(std::get<2>(Leds::map[c])), fixed32<20>(1.0f) - fixed32<20>(0.9f) * fixed32<20>(std::get<2>(Leds::map[c]))));
+                    }
+                } break;
     }
-    tick += fixed32<16>(1.0f/60.0f);
+    tick += fixed32<16>(1.0f/30.0f);
 #ifndef USE_HAL_DRIVER
     printf("\033[0H"); fflush(stdout);    
     for (size_t c = 0; c < Leds::ledsN; c++) {
         printf("\033[%d;%dH\033[48;2;%d;%d;%dm  \033[48;2;0;0;0m",
             16-static_cast<int32_t>(std::get<1>(Leds::map[c]) * fixed32<20>(16)),
-            static_cast<int32_t>(std::get<0>(Leds::map[c]) * fixed32<20>(32)),
-            int32_t(float(Leds::led_buffer[c].r)*255.0f),
-            int32_t(float(Leds::led_buffer[c].g)*255.0f),
-            int32_t(float(Leds::led_buffer[c].b)*255.0f));
+               static_cast<int32_t>(std::get<0>(Leds::map[c]) * fixed32<20>(32)),
+            int32_t(std::clamp(float(Leds::led_buffer[c].r), 0.0f, 1.0f)*255.0f),
+            int32_t(std::clamp(float(Leds::led_buffer[c].g), 0.0f, 1.0f)*255.0f),
+            int32_t(std::clamp(float(Leds::led_buffer[c].b), 0.0f, 1.0f)*255.0f));
     }
 #endif  // #ifndef USE_HAL_DRIVER
 
@@ -741,7 +754,7 @@ int main() {
 	printf("\033[2J"); fflush(stdout);	
 	for(;;) {
 		HAL_TIM_PeriodElapsedCallback(0);
-		std::this_thread::sleep_for(std::chrono::microseconds(16384));
+		std::this_thread::sleep_for(std::chrono::milliseconds(33));
 #ifdef WIN32
 		if(GetKeyState(VK_SPACE) & 0x8000) {
 			while(GetKeyState(VK_SPACE) & 0x8000) {
