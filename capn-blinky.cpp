@@ -534,9 +534,13 @@ void Leds::transfer() {
             *p++ = convert_half_to_spi((v>>0)&0xFF);
             return p;
         };
-        ptr = convert_to_one_wire_spi(ptr, ((led_buffer[c].g.clamp(fixed32<20>(0.0f), fixed32<20>(256.0f))) * fixed32<20>(1.0f/256.0f)).raw);
-        ptr = convert_to_one_wire_spi(ptr, ((led_buffer[c].r.clamp(fixed32<20>(0.0f), fixed32<20>(256.0f))) * fixed32<20>(1.0f/256.0f)).raw);
-        ptr = convert_to_one_wire_spi(ptr, ((led_buffer[c].b.clamp(fixed32<20>(0.0f), fixed32<20>(256.0f))) * fixed32<20>(1.0f/256.0f)).raw);
+
+        constexpr auto limit = fixed32<20>(128.0f);
+        constexpr auto limit_1 = fixed32<20>(1.0f/128.0f);
+
+        ptr = convert_to_one_wire_spi(ptr, ((led_buffer[c].g.clamp(fixed32<20>(0.0f), limit)) * limit_1).raw);
+        ptr = convert_to_one_wire_spi(ptr, ((led_buffer[c].r.clamp(fixed32<20>(0.0f), limit)) * limit_1).raw);
+        ptr = convert_to_one_wire_spi(ptr, ((led_buffer[c].b.clamp(fixed32<20>(0.0f), limit)) * limit_1).raw);
     }
 
     for (size_t c = 0; c < spiPaddingBytes/(sizeof(uint32_t)*2); c++ ) {
