@@ -663,7 +663,7 @@ extern "C" void HAL_SysTick_User(void) {
                     auto now_time = tick - prev_tick;
 
                     for (size_t c = 0; c < Leds::ledsN; c++) {
-                        fixed32<20> x = fixed32<20>(now_time) * fixed32<20>(4.0f) +
+                        fixed32<20> x = fixed32<20>(now_time) * fixed32<20>(6.0f) +
                             ((std::get<0>(Leds::map[c]) - fixed32<20>(0.5f)) * cos(cur_angle) - 
                              (std::get<1>(Leds::map[c]) - fixed32<20>(0.5f)) * sin(cur_angle));
                         if (x.abs() < fixed32<20>(1.0f)) {
@@ -680,7 +680,7 @@ extern "C" void HAL_SysTick_User(void) {
                 } break;
         case    2: {
                     for (size_t c = 0; c < Leds::ledsN; c++) {
-                        auto t = fixed32<20>(1.0f) - fixed32<20>(tick * fixed32<16>(0.04f)).frac();
+                        auto t = fixed32<20>(1.0f) - fixed32<20>(tick * fixed32<16>(0.08f)).frac();
                         auto h = t * fixed32<20>(6.28318530718f);
                         auto x = (std::get<0>(Leds::map[c]) - fixed32<20>(0.5f)) * cos(h) - 
                                  (std::get<1>(Leds::map[c]) - fixed32<20>(0.5f)) * sin(h);
@@ -690,14 +690,14 @@ extern "C" void HAL_SysTick_User(void) {
                 } break;
         case    3: {
                     for (size_t c = 0; c < Leds::ledsN; c++) {
-                        auto h = (fixed32<20>(1.0f) - fixed32<20>(tick * fixed32<16>(0.04f)).frac());
+                        auto h = (fixed32<20>(1.0f) - fixed32<20>(tick * fixed32<16>(0.02f)).frac());
                         auto hue((h + fixed32<20>(std::get<0>(Leds::map[c])) * fixed32<20>(std::get<1>(Leds::map[c])) * fixed32<20>(1.0f / 2.0f)).frac());
                         Leds::led_buffer[c] = rgb(hsv(hue, fixed32<20>(1.0f), fixed32<20>(1.0f) - fixed32<20>(0.95f) * fixed32<20>(std::get<2>(Leds::map[c]))));
                     }
                 } break;
         case    4: {
                     for (size_t c = 0; c < Leds::ledsN; c++) {
-                        auto h = (fixed32<20>(1.0f) - fixed32<20>(tick * fixed32<16>(0.02f)).frac());
+                        auto h = (fixed32<20>(1.0f) - fixed32<20>(tick * fixed32<16>(0.01f)).frac());
                         auto hue((h - fixed32<20>(std::get<0>(Leds::map[c])) * fixed32<20>(1.0f / 8.0f)).frac());
                         Leds::led_buffer[c] = rgb(hsv(hue, fixed32<20>(1.0f), fixed32<20>(1.0f) - fixed32<20>(0.95f) * fixed32<20>(std::get<2>(Leds::map[c]))));
                     }
