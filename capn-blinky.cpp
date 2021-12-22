@@ -646,7 +646,8 @@ extern "C" void HAL_GPIO_EXTI_Callback(uint16_t pin) {
 extern "C" void HAL_SysTick_User(void) {
 
 #ifdef USE_HAL_DRIVER
-    if (Model::instance().button_down && HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_1) == GPIO_PIN_RESET) {
+    if (Model::instance().button_down && 
+        HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_1) == GPIO_PIN_SET) {
         Model::instance().IncPattern();
         Model::instance().save();
         Model::instance().button_down = false;
