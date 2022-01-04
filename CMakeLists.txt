@@ -27,7 +27,8 @@ set(CXX_FLAGS
     -Wfloat-conversion 
     -Wno-volatile
     -Wformat=2 
-    -std=c++20 
+    -std=c++20
+    -fno-threadsafe-statics 
     -fno-rtti 
     -fno-exceptions)
 
